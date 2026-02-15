@@ -24,10 +24,10 @@ Visit the [live demo](YOUR_STREAMLIT_URL_HERE)
 
 ### Local
 ```bash
-git clone https://github.com/YOUR_USERNAME/heart-disease-predictor.git
+git clone https://github.com/kopiyo/heart-disease-predictor.git
 cd heart-disease-predictor
-pip install -r requirements_deploy.txt
-streamlit run app_VIBRANT.py
+pip install -r requirements.txt
+streamlit run heart_Disease.py
 ```
 
 ## Model Performance
