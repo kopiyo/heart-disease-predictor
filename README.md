@@ -4,17 +4,11 @@
 ![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-> AI-powered cardiovascular risk assessment using Machine Learning
-
-## 🔗 Live Demo
-
-**[Try the Live App →](YOUR_STREAMLIT_URL_HERE)**
-
-## 📊 Overview
+> Cardiovascular risk assessment using Machine Learning
 
 Interactive web application predicting heart disease risk using Logistic Regression. Achieves **91.5% ROC-AUC** on 302-patient UCI dataset with real-time risk assessment and clinical recommendations.
 
-## ✨ Features
+## Features
 
 - 🎯 Real-time cardiovascular risk prediction
 - 📈 83.6% accuracy, 91.5% ROC-AUC
@@ -23,7 +17,7 @@ Interactive web application predicting heart disease risk using Logistic Regress
 - 📄 Downloadable assessment reports
 - 🎨 Modern animated interface
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Online
 Visit the [live demo](YOUR_STREAMLIT_URL_HERE)
@@ -36,7 +30,7 @@ pip install -r requirements_deploy.txt
 streamlit run app_VIBRANT.py
 ```
 
-## 🧠 Model Performance
+## Model Performance
 
 | Metric | Score |
 |--------|-------|
@@ -49,13 +43,13 @@ streamlit run app_VIBRANT.py
 **Dataset**: 302 unique patients (UCI Heart Disease)  
 **Validation**: 5-fold cross-validation
 
-## 💻 Tech Stack
+## Tech Stack
 
 - Streamlit • Scikit-learn • Pandas • Plotly
 
 ## 📁 Files
 
-- `app_VIBRANT.py` - Main application
+- `heart_Disease.py` - Main application
 - `Heart_Disease.ipynb` - Model training
 - `heart_disease_model.joblib` - Trained model
 - `heart.csv` - Dataset
@@ -64,10 +58,10 @@ streamlit run app_VIBRANT.py
 
 Educational tool only. NOT for medical diagnosis. Consult healthcare professionals for medical decisions.
 
-## 👨‍💻 Author
+## Author
 
-**[Your Name]**  
-[GitHub](https://github.com/YOUR_USERNAME) • [LinkedIn](https://linkedin.com/in/YOUR_PROFILE)
+**[Diana Opiyo]**  
+[GitHub](https://github.com/kopiyo) • [LinkedIn](https://www.linkedin.com/in/diana-opiyo-680b98309/)
 
 ---
 
