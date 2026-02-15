@@ -1,8 +1,6 @@
 # ❤️ Heart Disease Prediction System
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](YOUR_STREAMLIT_URL_HERE)
-![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://heart-disease-risk-predictor-app.streamlit.app/)
 
 > Cardiovascular risk assessment using Machine Learning
 
@@ -20,7 +18,7 @@ Interactive web application predicting heart disease risk using Logistic Regress
 ## Quick Start
 
 ### Online
-Visit the [live demo](YOUR_STREAMLIT_URL_HERE)
+Visit the [live demo](https://heart-disease-risk-predictor-app.streamlit.app/)
 
 ### Local
 ```bash
