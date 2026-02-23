@@ -386,22 +386,38 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
 # PAGE
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ── Header (solid colour — gradient clip unreliable on Streamlit Cloud) ──────
+# ── Header — full-width pink banner ──────────────────────────────────────────
 st.markdown("""
-<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 4px 0;">
-  <div style="display:flex;align-items:center;gap:8px;">
-    <span style="font-size:1.7rem;">❤️</span>
-    <span style="font-size:1.4rem;font-weight:900;color:#C44569;letter-spacing:-.3px;">
-      Heart Disease Risk Predictor
+<div style="
+  background: linear-gradient(135deg, #C44569 0%, #FF6B9D 100%);
+  border-radius: 12px;
+  padding: 10px 18px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(196,69,105,0.35);
+">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:2rem;line-height:1;">❤️</span>
+    <div>
+      <div style="font-size:1.35rem;font-weight:900;color:white;
+                  letter-spacing:-0.3px;line-height:1.15;">
+        Heart Disease Risk Predictor
+      </div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.82);margin-top:1px;">
+        Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9154 &nbsp;·&nbsp; UCI Heart Disease Dataset
+      </div>
+    </div>
+  </div>
+  <div style="text-align:right;">
+    <span style="background:rgba(255,255,255,0.22);color:white;font-size:0.68rem;
+      font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.3px;">
+      ⚠️ Educational Tool Only
     </span>
   </div>
-  <span style="font-size:.74rem;color:#aaa;">
-    Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9154 &nbsp;·&nbsp; UCI Dataset &nbsp;·&nbsp;
-    <span style="color:#E74C3C;font-weight:700;">Educational Only</span>
-  </span>
 </div>
 """, unsafe_allow_html=True)
-st.markdown("<hr/>", unsafe_allow_html=True)
 
 # ── Patient row ───────────────────────────────────────────────────────────────
 r0c1, r0c2, r0c3 = st.columns([2, 1.5, 1.5])
