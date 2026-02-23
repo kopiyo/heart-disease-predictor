@@ -401,7 +401,7 @@ st.markdown("""
   <div style="display:flex;align-items:center;gap:10px;">
     <span style="font-size:2rem;line-height:1;">❤️</span>
     <div>
-      <div style="font-size:1.35rem;font-weight:900;color:white;
+      <div style="font-size:1.35rem;font-weight:800;color:white;
                   letter-spacing:-0.3px;line-height:1.15;">
         Heart Disease Risk Predictor
       </div>
@@ -413,7 +413,7 @@ st.markdown("""
   <div style="text-align:right;">
     <span style="background:rgba(255,255,255,0.22);color:white;font-size:0.68rem;
       font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.3px;">
-      ⚠️ Educational Tool Only
+      
     </span>
   </div>
 </div>
