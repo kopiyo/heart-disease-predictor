@@ -411,10 +411,7 @@ st.markdown("""
     </div>
   </div>
   <div style="text-align:right;">
-    <span style="background:rgba(255,255,255,0.22);color:white;font-size:0.68rem;
-      font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.3px;">
-      
-    </span>
+
   </div>
 </div>
 """, unsafe_allow_html=True)
