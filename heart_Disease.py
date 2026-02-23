@@ -3,10 +3,10 @@ import pandas as pd
 import numpy as np
 import joblib
 import plotly.graph_objects as go
-from datetime import datetime
-import base64
+from datetime import datetime, date
+import io
 
-# ── Page config ────────────────────────────────────────────────────────────
+# ── Page config ─────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Heart Disease Predictor",
     page_icon="❤️",
@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ── CSS ────────────────────────────────────────────────────────────────────
+# ── CSS ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 .stApp {
@@ -23,84 +23,113 @@ st.markdown("""
     animation:gradientShift 14s ease infinite;
 }
 @keyframes gradientShift {
-    0%{background-position:0% 50%}  25%{background-position:50% 100%}
-    50%{background-position:100% 50%} 75%{background-position:50% 0%}
+    0%  {background-position:0% 50%}  25%{background-position:50% 100%}
+    50% {background-position:100% 50%} 75%{background-position:50% 0%}
     100%{background-position:0% 50%}
 }
 .main .block-container {
-    background:rgba(255,255,255,0.95);
+    background:rgba(255,255,255,0.96);
     border-radius:16px;
-    padding:0.45rem 1rem 0.3rem 1rem !important;
+    padding:0.6rem 1.1rem 0.4rem 1.1rem !important;
     max-width:100% !important;
     box-shadow:0 8px 32px rgba(0,0,0,0.18);
 }
-/* Hide chrome */
 #MainMenu,footer,[data-testid="stToolbar"],.stDeployButton,
 [data-testid="collapsedControl"],
 section[data-testid="stSidebar"]{display:none!important;}
 
-/* Shrink inputs */
 *{font-family:'Segoe UI',Arial,sans-serif!important;}
-.stNumberInput input{font-size:.77rem!important;padding:1px 5px!important;height:26px!important;border-radius:5px!important;}
+
+/* ── Bigger input fonts ── */
+.stNumberInput input {
+    font-size:.9rem!important; padding:2px 7px!important;
+    height:32px!important; border-radius:6px!important;
+}
 .stNumberInput [data-testid="stNumberInputStepDown"],
-.stNumberInput [data-testid="stNumberInputStepUp"]{width:20px!important;height:26px!important;}
-.stSelectbox>div>div{font-size:.77rem!important;min-height:26px!important;padding:1px 6px!important;border-radius:5px!important;}
-.stTextArea textarea{font-size:.73rem!important;padding:3px 5px!important;border-radius:5px!important;resize:none!important;}
-.stTextInput input{font-size:.73rem!important;padding:1px 5px!important;height:24px!important;border-radius:5px!important;}
-.stNumberInput label,.stSelectbox label,.stTextArea label,.stTextInput label{
-    font-size:.69rem!important;margin-bottom:0!important;padding:0!important;
-    color:#555!important;font-weight:600!important;line-height:1.2!important;}
+.stNumberInput [data-testid="stNumberInputStepUp"] {
+    width:24px!important; height:32px!important;
+}
+.stSelectbox>div>div {
+    font-size:.9rem!important; min-height:32px!important;
+    padding:2px 8px!important; border-radius:6px!important;
+}
+.stTextArea textarea {
+    font-size:.86rem!important; padding:4px 7px!important;
+    border-radius:6px!important; resize:none!important; line-height:1.4!important;
+}
+.stTextInput input {
+    font-size:.86rem!important; padding:2px 7px!important;
+    height:30px!important; border-radius:6px!important;
+}
+.stDateInput input {
+    font-size:.86rem!important; padding:2px 7px!important;
+    height:30px!important; border-radius:6px!important;
+}
+/* Labels bigger */
+.stNumberInput label,.stSelectbox label,
+.stTextArea label,.stTextInput label,.stDateInput label {
+    font-size:.8rem!important; margin-bottom:0!important; padding:0!important;
+    color:#555!important; font-weight:600!important; line-height:1.3!important;
+}
 [data-testid="stVerticalBlock"]>div{gap:0!important;}
 .element-container{margin:0!important;padding:0!important;}
-div[data-testid="column"]{padding:0 2px!important;}
+div[data-testid="column"]{padding:0 3px!important;}
 
-/* Section pill */
-.spill{font-size:.67rem;font-weight:800;color:white;
+.spill {
+    font-size:.76rem; font-weight:800; color:white;
     background:linear-gradient(135deg,#C44569,#FF6B9D);
-    border-radius:5px;padding:1px 7px;display:inline-block;margin-bottom:2px;}
-
-/* Badges */
-.badge{display:inline-block;font-size:.6rem;font-weight:700;
-    padding:0 5px;border-radius:8px;margin:1px 0 2px 0;line-height:1.45;}
+    border-radius:6px; padding:2px 9px; display:inline-block; margin-bottom:3px;
+}
+.badge {
+    display:inline-block; font-size:.68rem; font-weight:700;
+    padding:1px 6px; border-radius:8px; margin:1px 0 3px 0; line-height:1.5;
+}
 .bg{background:#d4edda;color:#155724;}
 .by{background:#fff3cd;color:#856404;}
 .br{background:#f8d7da;color:#721c24;}
 
-/* Risk card */
-.rcard{border-radius:9px;padding:7px 9px;margin:3px 0;
-    border-left:4px solid;animation:popIn .3s ease;}
+.rcard {
+    border-radius:10px; padding:8px 11px; margin:3px 0;
+    border-left:4px solid; animation:popIn .3s ease;
+}
 @keyframes popIn{0%{opacity:0;transform:scale(.9)}100%{opacity:1;transform:scale(1)}}
 .r-low {background:linear-gradient(135deg,#43C6AC,#191654);border-color:#43C6AC;}
 .r-med {background:linear-gradient(135deg,#F2994A,#F2C94C);border-color:#F2994A;}
 .r-high{background:linear-gradient(135deg,#EB5757,#FF6B9D);border-color:#EB5757;}
 .rcard p{color:white!important;margin:0!important;}
-.rcard .rt{font-size:.93rem;font-weight:900;}
-.rcard .rp{font-size:.77rem;margin-top:1px!important;}
-.rcard .rr{font-size:.67rem;opacity:.9;margin-top:1px!important;}
+.rcard .rt{font-size:1.05rem;font-weight:900;}
+.rcard .rp{font-size:.86rem;margin-top:2px!important;}
+.rcard .rr{font-size:.74rem;opacity:.9;margin-top:1px!important;}
 
-/* Predict button */
-.stButton>button{background:linear-gradient(135deg,#FF6B9D,#C44569)!important;
-    color:white!important;font-weight:800!important;font-size:.8rem!important;
-    padding:3px 0!important;height:30px!important;border-radius:7px!important;
-    border:none!important;width:100%!important;
-    box-shadow:0 3px 10px rgba(255,107,157,.4)!important;transition:all .25s!important;}
-.stButton>button:hover{transform:translateY(-1px)!important;
-    box-shadow:0 5px 16px rgba(255,107,157,.55)!important;}
+.stButton>button {
+    background:linear-gradient(135deg,#FF6B9D,#C44569)!important;
+    color:white!important; font-weight:800!important; font-size:.9rem!important;
+    padding:4px 0!important; height:34px!important; border-radius:8px!important;
+    border:none!important; width:100%!important;
+    box-shadow:0 3px 12px rgba(255,107,157,.42)!important; transition:all .25s!important;
+}
+.stButton>button:hover {
+    transform:translateY(-1px)!important;
+    box-shadow:0 5px 18px rgba(255,107,157,.58)!important;
+}
+[data-testid="metric-container"] {
+    background:linear-gradient(135deg,#fafafa,#f0f0f0)!important;
+    border-radius:7px!important; padding:3px 8px!important;
+    border-left:3px solid #FF6B9D!important;
+    box-shadow:0 1px 5px rgba(0,0,0,.07)!important;
+}
+[data-testid="metric-container"] label{font-size:.7rem!important;}
+[data-testid="metric-container"] [data-testid="stMetricValue"]{font-size:1rem!important;}
 
-/* Metrics */
-[data-testid="metric-container"]{background:linear-gradient(135deg,#fafafa,#f0f0f0)!important;
-    border-radius:6px!important;padding:2px 6px!important;
-    border-left:3px solid #FF6B9D!important;box-shadow:0 1px 4px rgba(0,0,0,.06)!important;}
-[data-testid="metric-container"] label{font-size:.58rem!important;}
-[data-testid="metric-container"] [data-testid="stMetricValue"]{font-size:.82rem!important;}
-
-.disc{font-size:.59rem;color:#999;text-align:center;
-    border-top:1px solid rgba(196,69,105,.12);padding-top:2px;margin-top:3px;}
-hr{margin:2px 0!important;border-color:rgba(196,69,105,.15)!important;}
+.disc {
+    font-size:.7rem; color:#999; text-align:center;
+    border-top:1px solid rgba(196,69,105,.12); padding-top:3px; margin-top:4px;
+}
+hr{margin:3px 0!important;border-color:rgba(196,69,105,.15)!important;}
 </style>
 """, unsafe_allow_html=True)
 
-# ── Load model ─────────────────────────────────────────────────────────────
+# ── Model ────────────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_model():
     try:
@@ -110,11 +139,161 @@ def load_model():
 
 model = load_model()
 
-# ── PDF generator ──────────────────────────────────────────────────────────
-def make_pdf(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
-    rc  = {"LOW":"#27AE60","MEDIUM":"#F39C12","HIGH":"#E74C3C"}[risk]
-    rb  = {"LOW":"#EAFAF1","MEDIUM":"#FEF9E7","HIGH":"#FDEDEC"}[risk]
-    ri  = {"LOW":"✓","MEDIUM":"!","HIGH":"⚠"}[risk]
+# ── PDF generator using ReportLab (true .pdf, no HTML) ──────────────────────
+def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import mm
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
+    from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
+                                     Table, TableStyle, HRFlowable)
+    from reportlab.graphics.shapes import Rect, String, Drawing
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4,
+                             leftMargin=15*mm, rightMargin=15*mm,
+                             topMargin=12*mm, bottomMargin=12*mm)
+
+    PINK   = colors.HexColor("#C44569")
+    LPINK  = colors.HexColor("#FF6B9D")
+    RC     = {"LOW":colors.HexColor("#27AE60"),
+               "MEDIUM":colors.HexColor("#F39C12"),
+               "HIGH":colors.HexColor("#E74C3C")}[risk]
+    RBG    = {"LOW":colors.HexColor("#EAFAF1"),
+               "MEDIUM":colors.HexColor("#FEF9E7"),
+               "HIGH":colors.HexColor("#FDEDEC")}[risk]
+    GREY   = colors.HexColor("#888888")
+    CARD   = colors.HexColor("#FAFAFA")
+    BORD   = colors.HexColor("#EEEEEE")
+
+    def P(text, size=9, color=colors.HexColor("#222222"), bold=False,
+          align=TA_LEFT, leading=None):
+        fn = "Helvetica-Bold" if bold else "Helvetica"
+        return Paragraph(str(text), ParagraphStyle("p",
+            fontSize=size, textColor=color, fontName=fn,
+            alignment=align, leading=leading or size*1.35))
+
+    W = A4[0] - 30*mm
+    story = []
+
+    # ── HEADER ──
+    hdr = Table([[
+        P("❤️  Heart Disease Risk Assessment Report", 15, colors.white, True),
+        P(f"ID: HDR-{datetime.now().strftime('%Y%m%d%H%M%S')}<br/>"
+          f"{datetime.now().strftime('%d %B %Y, %H:%M')}<br/>"
+          "EDUCATIONAL USE ONLY", 7.5, colors.white, align=TA_RIGHT)
+    ],[
+        P("Logistic Regression · ROC-AUC: 0.9154 · UCI Heart Disease Dataset",
+          8, colors.white),
+        ""
+    ]], colWidths=[W*0.65, W*0.35])
+    hdr.setStyle(TableStyle([
+        ("BACKGROUND",   (0,0),(-1,-1), PINK),
+        ("VALIGN",       (0,0),(-1,-1), "MIDDLE"),
+        ("TOPPADDING",   (0,0),(-1,-1), 9),
+        ("BOTTOMPADDING",(0,0),(-1,-1), 7),
+        ("LEFTPADDING",  (0,0),(-1,-1), 10),
+        ("RIGHTPADDING", (0,0),(-1,-1), 10),
+        ("SPAN",         (0,0),(0,1)),
+    ]))
+    story += [hdr, Spacer(1, 4*mm)]
+
+    # ── DISCLAIMER ──
+    disc = Table([[P("⚠  DISCLAIMER: This is an educational ML tool only. It does not "
+                     "constitute medical advice, diagnosis, or treatment. Always consult "
+                     "a qualified healthcare professional.", 8,
+                     colors.HexColor("#856404"))]], colWidths=[W])
+    disc.setStyle(TableStyle([
+        ("BACKGROUND",   (0,0),(-1,-1), colors.HexColor("#FFF3CD")),
+        ("BOX",          (0,0),(-1,-1), 0.5, colors.HexColor("#FFEEBA")),
+        ("LEFTPADDING",  (0,0),(-1,-1), 8),
+        ("RIGHTPADDING", (0,0),(-1,-1), 8),
+        ("TOPPADDING",   (0,0),(-1,-1), 5),
+        ("BOTTOMPADDING",(0,0),(-1,-1), 5),
+    ]))
+    story += [disc, Spacer(1, 3*mm)]
+
+    # ── PATIENT ROW ──
+    pt_parts = []
+    if pname: pt_parts.append(f"<b>Patient:</b> {pname}")
+    if pdob:  pt_parts.append(f"<b>DOB:</b> {pdob}")
+    if pref:  pt_parts.append(f"<b>Clinician:</b> {pref}")
+    if pt_parts:
+        pt = Table([[P("  |  ".join(pt_parts), 9,
+                       colors.HexColor("#333333"))]], colWidths=[W])
+        pt.setStyle(TableStyle([
+            ("BACKGROUND",   (0,0),(-1,-1), colors.HexColor("#F0F4FF")),
+            ("BOX",          (0,0),(-1,-1), 0.5, colors.HexColor("#C7D2FE")),
+            ("LEFTPADDING",  (0,0),(-1,-1), 8),
+            ("TOPPADDING",   (0,0),(-1,-1), 4),
+            ("BOTTOMPADDING",(0,0),(-1,-1), 4),
+        ]))
+        story += [pt, Spacer(1, 3*mm)]
+
+    # ── RISK BANNER ──
+    ri = {"LOW":"✓","MEDIUM":"!","HIGH":"⚠"}[risk]
+    rb = Table([[
+        P(ri, 16, colors.white, True, TA_CENTER),
+        [P(f"{risk} RISK", 14, RC, True),
+         P(f"Disease probability: <b>{prob*100:.1f}%</b>  |  "
+           f"{'Heart Disease Detected' if pred==1 else 'No Heart Disease Detected'}",
+           9, colors.HexColor("#555555"))],
+        [P("📋  RECOMMENDATION", 8, RC, True),
+         Spacer(1, 2),
+         P(rec, 9, colors.HexColor("#444444"))]
+    ]], colWidths=[11*mm, W*0.53, W*0.35])
+    rb.setStyle(TableStyle([
+        ("BACKGROUND",   (0,0),(-1,-1), RBG),
+        ("BOX",          (0,0),(-1,-1), 1.0, RC),
+        ("BACKGROUND",   (0,0),(0,0),   RC),
+        ("VALIGN",       (0,0),(-1,-1), "MIDDLE"),
+        ("LINEAFTER",    (1,0),(1,0),   0.5, RC),
+        ("LEFTPADDING",  (0,0),(-1,-1), 8),
+        ("RIGHTPADDING", (0,0),(-1,-1), 8),
+        ("TOPPADDING",   (0,0),(-1,-1), 8),
+        ("BOTTOMPADDING",(0,0),(-1,-1), 8),
+    ]))
+    story += [rb, Spacer(1, 3*mm)]
+
+    # ── GAUGE ──
+    story.append(P("RISK PROBABILITY GAUGE", 7, GREY, True))
+    story.append(Spacer(1, 1*mm))
+    gw, gh = W, 10
+    g = Drawing(gw, gh + 14)
+    g.add(Rect(0,    14, gw*0.30, gh, fillColor=colors.HexColor("#27AE60"), strokeColor=None))
+    g.add(Rect(gw*0.30, 14, gw*0.40, gh, fillColor=colors.HexColor("#F39C12"), strokeColor=None))
+    g.add(Rect(gw*0.70, 14, gw*0.30, gh, fillColor=colors.HexColor("#E74C3C"), strokeColor=None))
+    nx = gw * min(max(prob, 0.01), 0.99)
+    g.add(Rect(nx-1.5, 11, 3, gh+5, fillColor=colors.HexColor("#1a1a1a"), strokeColor=None))
+    for pct, lbl in [(0,"0%"),(0.25,"25%"),(0.50,"50%"),(0.75,"75%"),(1.0,"100%")]:
+        g.add(String(gw*pct, 2, lbl, fontSize=7, fillColor=colors.HexColor("#999999"),
+                     textAnchor="middle"))
+    story += [g, Spacer(1, 3*mm)]
+
+    # ── DATA CARDS helper ──
+    def card(title, rows):
+        inner = Table([[P(k, 9, GREY), P(v, 9, colors.HexColor("#222"), True)]
+                        for k,v in rows], colWidths=[W*0.22, W*0.25])
+        inner.setStyle(TableStyle([
+            ("LINEBELOW",    (0,0),(-1,-2), 0.3, colors.HexColor("#F0F0F0")),
+            ("TOPPADDING",   (0,0),(-1,-1), 2),
+            ("BOTTOMPADDING",(0,0),(-1,-1), 2),
+            ("LEFTPADDING",  (0,0),(-1,-1), 0),
+            ("RIGHTPADDING", (0,0),(-1,-1), 0),
+        ]))
+        outer = Table([[P(title, 8, PINK, True)],[inner]], colWidths=[None])
+        outer.setStyle(TableStyle([
+            ("BACKGROUND",   (0,0),(-1,-1), CARD),
+            ("BOX",          (0,0),(-1,-1), 0.5, BORD),
+            ("LINEBELOW",    (0,0),(0,0),   0.5, colors.HexColor("#F0E0E5")),
+            ("LEFTPADDING",  (0,0),(-1,-1), 8),
+            ("RIGHTPADDING", (0,0),(-1,-1), 8),
+            ("TOPPADDING",   (0,0),(-1,-1), 5),
+            ("BOTTOMPADDING",(0,0),(-1,-1), 5),
+        ]))
+        return outer
+
     sex_s = "Male" if d["sex"]==1 else "Female"
     cp_s  = ["Typical Angina","Atypical Angina","Non-anginal Pain","Asymptomatic"][d["cp"]]
     ecg_s = ["Normal","ST-T Abnormality","LV Hypertrophy"][d["restecg"]]
@@ -122,256 +301,176 @@ def make_pdf(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
     th_s  = ["Normal","Fixed Defect","Reversible Defect","Unknown"][d["thal"]]
     fbs_s = "Yes" if d["fbs"]==1 else "No"
     ex_s  = "Yes" if d["exang"]==1 else "No"
-    rf_li = "".join(f"<li>{x}</li>" for x in rfs) if rfs else "<li>No major risk factors identified</li>"
+    cw = (W - 4*mm) / 2
 
-    pt_parts = []
-    if pname: pt_parts.append(f"<strong>Patient:</strong> {pname}")
-    if pdob:  pt_parts.append(f"<strong>DOB:</strong> {pdob}")
-    if pref:  pt_parts.append(f"<strong>Clinician:</strong> {pref}")
-    pt_row = (
-        "<div style='background:#F0F4FF;border-radius:5px;padding:5px 10px;"
-        "margin-bottom:10px;font-size:10px;'>"
-        + " &nbsp;|&nbsp; ".join(pt_parts) + "</div>"
-    ) if pt_parts else ""
+    row1 = Table([[
+        card("👤  DEMOGRAPHICS & VITALS", [
+            ("Age",f"{d['age']} years"),("Sex",sex_s),
+            ("Resting BP",f"{d['trestbps']} mm Hg"),
+            ("Cholesterol",f"{d['chol']} mg/dL"),
+            ("Max Heart Rate",f"{d['thalach']} bpm")]),
+        card("🏥  BLOOD & ECG", [
+            ("Fasting Sugar >120",fbs_s),("Resting ECG",ecg_s),
+            ("ST Depression",str(d['oldpeak'])),("ST Slope",sl_s)])
+    ]], colWidths=[cw, cw])
+    row1.setStyle(TableStyle([
+        ("LEFTPADDING",(0,0),(-1,-1),2),("RIGHTPADDING",(0,0),(-1,-1),2),
+        ("VALIGN",(0,0),(-1,-1),"TOP")]))
+    story += [row1, Spacer(1, 2*mm)]
 
-    notes_block = (
-        "<div style='background:#FFF8E7;border:1px solid #F39C12;border-radius:7px;"
-        "padding:10px 12px;margin-bottom:10px;'>"
-        "<div style='font-size:9px;font-weight:700;color:#E67E22;text-transform:uppercase;"
-        "margin-bottom:4px;'>📝 Clinician Notes</div>"
-        f"<div style='font-size:10px;color:#444;line-height:1.55;white-space:pre-wrap;'>{notes}</div>"
-        "</div>"
-    ) if notes.strip() else ""
+    rf_items = ([P(f"⚠  {r}", 9, colors.HexColor("#333")) for r in rfs]
+                if rfs else [P("✓  No major risk factors identified", 9,
+                               colors.HexColor("#27AE60"), True)])
+    rf_inner = Table([[item] for item in rf_items], colWidths=[None])
+    rf_inner.setStyle(TableStyle([
+        ("TOPPADDING",(0,0),(-1,-1),1),("BOTTOMPADDING",(0,0),(-1,-1),1),
+        ("LEFTPADDING",(0,0),(-1,-1),0)]))
+    rf_card = Table([
+        [P("⚠️  RISK FACTORS IDENTIFIED", 8, PINK, True)],
+        [rf_inner]
+    ], colWidths=[None])
+    rf_card.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),CARD),("BOX",(0,0),(-1,-1),0.5,BORD),
+        ("LINEBELOW",(0,0),(0,0),0.5,colors.HexColor("#F0E0E5")),
+        ("LEFTPADDING",(0,0),(-1,-1),8),("RIGHTPADDING",(0,0),(-1,-1),8),
+        ("TOPPADDING",(0,0),(-1,-1),5),("BOTTOMPADDING",(0,0),(-1,-1),5)]))
 
-    return f"""<!DOCTYPE html><html><head><meta charset="UTF-8">
-<style>
-*{{box-sizing:border-box;margin:0;padding:0;
-   font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#222;}}
-body{{background:white;}}
-@media print{{
-  @page{{margin:12mm 15mm;size:A4;}}
-  .no-print{{display:none!important;}}
-  body{{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
-}}
-.hdr{{background:linear-gradient(135deg,#C44569,#FF6B9D);color:white;
-      padding:13px 20px;display:flex;align-items:center;gap:12px;}}
-.hdr-t{{font-size:16px;font-weight:900;}}
-.hdr-s{{font-size:9px;opacity:.85;margin-top:2px;}}
-.hdr-m{{margin-left:auto;text-align:right;font-size:9px;opacity:.85;line-height:1.5;}}
-.body{{padding:12px 20px;}}
-.disc{{background:#FFF3CD;border:1px solid #FFEEBA;border-radius:5px;
-       padding:5px 9px;font-size:9px;color:#856404;margin-bottom:10px;}}
-.risk-b{{background:{rb};border:1.5px solid {rc};border-radius:8px;
-         padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}}
-.ri{{width:36px;height:36px;border-radius:50%;background:{rc};color:white;
-     font-size:15px;font-weight:900;display:flex;align-items:center;
-     justify-content:center;flex-shrink:0;}}
-.rt{{font-size:14px;font-weight:800;color:{rc};}}
-.rp{{font-size:10px;color:#555;margin-top:2px;}}
-.rec-box{{margin-left:auto;background:white;border:1px solid {rc};
-          border-radius:5px;padding:6px 9px;max-width:240px;}}
-.rec-t{{font-size:9px;font-weight:700;text-transform:uppercase;color:{rc};margin-bottom:2px;}}
-.rec-b{{font-size:10px;color:#444;line-height:1.4;}}
-.g-track{{height:10px;border-radius:5px;margin:3px 0 2px 0;
-  background:linear-gradient(90deg,#27AE60 0%,#27AE60 30%,
-  #F39C12 30%,#F39C12 70%,#E74C3C 70%,#E74C3C 100%);position:relative;}}
-.g-needle{{position:absolute;top:-3px;width:3px;height:16px;background:#1a1a1a;
-  border-radius:2px;left:{prob*100:.1f}%;transform:translateX(-50%);}}
-.g-ticks{{display:flex;justify-content:space-between;
-  font-size:8px;color:#999;margin-bottom:8px;}}
-.grid2{{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;}}
-.card{{background:#FAFAFA;border-radius:6px;padding:9px 11px;border:1px solid #EEE;}}
-.ct{{font-size:9px;font-weight:700;color:#C44569;text-transform:uppercase;
-     letter-spacing:.4px;margin-bottom:5px;padding-bottom:3px;
-     border-bottom:1px solid #F0E0E5;}}
-table.dt{{width:100%;border-collapse:collapse;}}
-table.dt td{{padding:2px 0;font-size:10px;border-bottom:1px solid #F5F5F5;}}
-table.dt td:first-child{{color:#888;width:46%;}}
-table.dt td:last-child{{font-weight:600;}}
-.rf-list{{list-style:none;padding:0;}}
-.rf-list li{{font-size:10px;padding:2px 0;border-bottom:1px solid #F5F5F5;}}
-.rf-list li::before{{content:"⚠ ";color:#E74C3C;}}
-.ftr{{background:#F8F8F8;border-top:1px solid #EEE;padding:7px 20px;
-      display:flex;justify-content:space-between;align-items:center;}}
-.ftr-l{{font-size:9px;color:#999;}}
-.ftr-r{{font-size:9px;color:#C44569;font-weight:700;}}
-</style></head><body>
-<div class="hdr">
-  <div style="font-size:26px;">❤️</div>
-  <div>
-    <div class="hdr-t">Heart Disease Risk Assessment Report</div>
-    <div class="hdr-s">Logistic Regression · ROC-AUC: 0.9154 · UCI Heart Disease Dataset</div>
-  </div>
-  <div class="hdr-m">
-    ID: HDR-{datetime.now().strftime('%Y%m%d%H%M%S')}<br>
-    {datetime.now().strftime('%d %B %Y, %H:%M')}<br>
-    EDUCATIONAL USE ONLY
-  </div>
-</div>
-<div class="body">
-<div class="disc">⚠️ <strong>DISCLAIMER:</strong> This is an educational ML tool only. It does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional.</div>
-{pt_row}
-<div class="risk-b">
-  <div class="ri">{ri}</div>
-  <div>
-    <div class="rt">{risk} RISK</div>
-    <div class="rp">Disease probability: <strong>{prob*100:.1f}%</strong> &nbsp;|&nbsp; {'Heart Disease Detected' if pred==1 else 'No Heart Disease Detected'}</div>
-  </div>
-  <div class="rec-box">
-    <div class="rec-t">📋 Recommendation</div>
-    <div class="rec-b">{rec}</div>
-  </div>
-</div>
-<div style="font-size:9px;color:#888;font-weight:600;letter-spacing:.4px;margin-bottom:2px;">RISK PROBABILITY GAUGE</div>
-<div class="g-track"><div class="g-needle"></div></div>
-<div class="g-ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
-<div class="grid2">
-  <div class="card"><div class="ct">👤 Demographics & Vitals</div>
-    <table class="dt">
-      <tr><td>Age</td><td>{d['age']} years</td></tr>
-      <tr><td>Sex</td><td>{sex_s}</td></tr>
-      <tr><td>Resting BP</td><td>{d['trestbps']} mm Hg</td></tr>
-      <tr><td>Cholesterol</td><td>{d['chol']} mg/dL</td></tr>
-      <tr><td>Max Heart Rate</td><td>{d['thalach']} bpm</td></tr>
-    </table>
-  </div>
-  <div class="card"><div class="ct">🏥 Blood & ECG</div>
-    <table class="dt">
-      <tr><td>Fasting Sugar &gt;120</td><td>{fbs_s}</td></tr>
-      <tr><td>Resting ECG</td><td>{ecg_s}</td></tr>
-      <tr><td>ST Depression</td><td>{d['oldpeak']}</td></tr>
-      <tr><td>ST Slope</td><td>{sl_s}</td></tr>
-    </table>
-  </div>
-</div>
-<div class="grid2">
-  <div class="card"><div class="ct">💊 Clinical Findings</div>
-    <table class="dt">
-      <tr><td>Chest Pain</td><td>{cp_s}</td></tr>
-      <tr><td>Exercise Angina</td><td>{ex_s}</td></tr>
-      <tr><td>Major Vessels</td><td>{d['ca']}</td></tr>
-      <tr><td>Thalassemia</td><td>{th_s}</td></tr>
-    </table>
-  </div>
-  <div class="card"><div class="ct">⚠️ Risk Factors Identified</div>
-    <ul class="rf-list">{rf_li}</ul>
-  </div>
-</div>
-{notes_block}
-</div>
-<div class="ftr">
-  <div class="ftr-l">Heart Disease Prediction System · Logistic Regression · UCI (n=302) · 5-Fold CV · Acc: 83.6% · Recall: 84.9%</div>
-  <div class="ftr-r">⚠️ Educational Tool — Not for Clinical Diagnosis</div>
-</div>
-<div class="no-print" style="text-align:center;padding:10px;background:#f5f5f5;">
-  <button onclick="window.print()" style="background:linear-gradient(135deg,#C44569,#FF6B9D);
-    color:white;border:none;padding:7px 22px;border-radius:6px;font-size:12px;
-    font-weight:700;cursor:pointer;margin-right:8px;">🖨️ Print / Save as PDF</button>
-  <button onclick="window.close()" style="background:#888;color:white;border:none;
-    padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;">Close</button>
-</div>
-</body></html>"""
+    row2 = Table([[
+        card("💊  CLINICAL FINDINGS", [
+            ("Chest Pain",cp_s),("Exercise Angina",ex_s),
+            ("Major Vessels",str(d['ca'])),("Thalassemia",th_s)]),
+        rf_card
+    ]], colWidths=[cw, cw])
+    row2.setStyle(TableStyle([
+        ("LEFTPADDING",(0,0),(-1,-1),2),("RIGHTPADDING",(0,0),(-1,-1),2),
+        ("VALIGN",(0,0),(-1,-1),"TOP")]))
+    story.append(row2)
+
+    # ── CLINICIAN NOTES ──
+    if notes.strip():
+        story.append(Spacer(1, 3*mm))
+        nt = Table([
+            [P("📝  CLINICIAN NOTES", 8, colors.HexColor("#E67E22"), True)],
+            [P(notes.replace('\n','<br/>'), 9, colors.HexColor("#444444"), leading=13)]
+        ], colWidths=[W])
+        nt.setStyle(TableStyle([
+            ("BACKGROUND",(0,0),(-1,-1),colors.HexColor("#FFF8E7")),
+            ("BOX",(0,0),(-1,-1),0.8,colors.HexColor("#F39C12")),
+            ("LINEBELOW",(0,0),(0,0),0.5,colors.HexColor("#F39C12")),
+            ("LEFTPADDING",(0,0),(-1,-1),10),("RIGHTPADDING",(0,0),(-1,-1),10),
+            ("TOPPADDING",(0,0),(-1,-1),6),("BOTTOMPADDING",(0,0),(-1,-1),6)]))
+        story.append(nt)
+
+    # ── FOOTER ──
+    story += [Spacer(1,4*mm), HRFlowable(width=W, thickness=0.5, color=BORD),
+              Spacer(1,1*mm)]
+    ft = Table([[
+        P("Heart Disease Prediction System · Logistic Regression · "
+          "UCI (n=302) · 5-Fold CV · Acc: 83.6% · Recall: 84.9%",
+          7.5, GREY),
+        P("⚠  Educational Tool — Not for Clinical Diagnosis",
+          7.5, PINK, True, TA_RIGHT)
+    ]], colWidths=[W*0.6, W*0.4])
+    ft.setStyle(TableStyle([
+        ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+        ("LEFTPADDING",(0,0),(-1,-1),0),("RIGHTPADDING",(0,0),(-1,-1),0),
+        ("TOPPADDING",(0,0),(-1,-1),0),("BOTTOMPADDING",(0,0),(-1,-1),0)]))
+    story.append(ft)
+
+    doc.build(story)
+    buf.seek(0)
+    return buf.read()
 
 
-# ══════════════════════════════════════════════════════════════════════════
-# LAYOUT
-# ══════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE
+# ══════════════════════════════════════════════════════════════════════════════
 
-# ── Header ────────────────────────────────────────────────────────────────
+# ── Header (solid colour — gradient clip unreliable on Streamlit Cloud) ──────
 st.markdown("""
-<div style="display:flex;align-items:center;justify-content:space-between;padding:1px 2px 0 2px;">
-  <span style="font-size:1.28rem;font-weight:900;
-    background:linear-gradient(135deg,#FF6B9D,#C44569);
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;">
-    ❤️ Heart Disease Risk Predictor
-  </span>
-  <span style="font-size:.62rem;color:#aaa;">
-    Logistic Regression · ROC-AUC 0.9154 · UCI Dataset ·
+<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 4px 0;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span style="font-size:1.7rem;">❤️</span>
+    <span style="font-size:1.4rem;font-weight:900;color:#C44569;letter-spacing:-.3px;">
+      Heart Disease Risk Predictor
+    </span>
+  </div>
+  <span style="font-size:.74rem;color:#aaa;">
+    Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9154 &nbsp;·&nbsp; UCI Dataset &nbsp;·&nbsp;
     <span style="color:#E74C3C;font-weight:700;">Educational Only</span>
   </span>
 </div>
 """, unsafe_allow_html=True)
 st.markdown("<hr/>", unsafe_allow_html=True)
 
-# ── Patient ID row (3 compact fields) ────────────────────────────────────
+# ── Patient row ───────────────────────────────────────────────────────────────
 r0c1, r0c2, r0c3 = st.columns([2, 1.5, 1.5])
-pname = r0c1.text_input("Patient Name / ID", placeholder="e.g. Patient 001",   key="w_pname")
-pdob  = r0c2.text_input("Date of Birth",      placeholder="DD/MM/YYYY",         key="w_pdob")
-pref  = r0c3.text_input("Referring Clinician", placeholder="Dr. ...",            key="w_pref")
-st.markdown("<hr style='margin:2px 0 3px 0;'/>", unsafe_allow_html=True)
+pname = r0c1.text_input("Patient Name / ID",  placeholder="e.g. Patient 001", key="w_pname")
+pdob  = r0c2.date_input("Date of Birth", value=None,
+                         min_value=date(1900,1,1), max_value=date.today(),
+                         key="w_pdob", format="DD/MM/YYYY")
+pref  = r0c3.text_input("Referring Clinician", placeholder="Dr. ...", key="w_pref")
+st.markdown("<hr style='margin:3px 0 4px 0;'/>", unsafe_allow_html=True)
 
-# ── 5-column layout ───────────────────────────────────────────────────────
+# ── 5 columns ────────────────────────────────────────────────────────────────
 c1, c2, c3, c4, c5 = st.columns([1, 1, 1, 1, 1.15])
 
-# ── COL 1 · Demographics & Vitals ────────────────────────────────────────
+# COL 1
 with c1:
     st.markdown("<div class='spill'>👤 Demographics & Vitals</div>", unsafe_allow_html=True)
-
-    age      = st.number_input("Age (yrs)",           1,   120,  50,       key="w_age")
+    age      = st.number_input("Age (yrs)", 1, 120, 50, key="w_age")
     ab = ("bg","Low risk") if age<45 else ("by","Moderate") if age<60 else ("br","Elevated")
     st.markdown(f"<span class='badge {ab[0]}'>{ab[1]}</span>", unsafe_allow_html=True)
-
     sex      = st.selectbox("Sex", [0,1],
                              format_func=lambda x:"♀ Female" if x==0 else "♂ Male", key="w_sex")
-
-    trestbps = st.number_input("Resting BP (mmHg)",  50,   250, 120,       key="w_bp")
+    trestbps = st.number_input("Resting BP (mmHg)", 50, 250, 120, key="w_bp")
     bb = ("bg","Normal") if trestbps<120 else ("by","Elevated") if trestbps<140 else ("br","High BP")
     st.markdown(f"<span class='badge {bb[0]}'>{bb[1]}</span>", unsafe_allow_html=True)
-
-    chol     = st.number_input("Cholesterol (mg/dL)", 50,  600, 200,       key="w_chol")
+    chol     = st.number_input("Cholesterol (mg/dL)", 50, 600, 200, key="w_chol")
     cb = ("bg","Desirable") if chol<200 else ("by","Borderline") if chol<240 else ("br","High")
     st.markdown(f"<span class='badge {cb[0]}'>{cb[1]}</span>", unsafe_allow_html=True)
-
-    thalach  = st.number_input("Max HR (bpm)",        50,  250, 150,       key="w_hr")
+    thalach  = st.number_input("Max HR (bpm)", 50, 250, 150, key="w_hr")
     pct = int(thalach / max(220 - age, 1) * 100)
     hb = ("bg",f"{pct}%") if pct>=85 else ("by",f"{pct}%") if pct>=70 else ("br",f"{pct}%")
     st.markdown(f"<span class='badge {hb[0]}'>HR {hb[1]} est.max</span>", unsafe_allow_html=True)
 
-# ── COL 2 · Blood & ECG ──────────────────────────────────────────────────
+# COL 2
 with c2:
     st.markdown("<div class='spill'>🏥 Blood & ECG</div>", unsafe_allow_html=True)
-
     fbs     = st.selectbox("Fasting Sugar >120", [0,1],
                             format_func=lambda x:"No" if x==0 else "Yes", key="w_fbs")
     if fbs==1:
         st.markdown("<span class='badge br'>Elevated glucose</span>", unsafe_allow_html=True)
-
     restecg = st.selectbox("Resting ECG", [0,1,2],
                             format_func=lambda x:["Normal","ST-T Abnormal","LVH"][x], key="w_ecg")
     if restecg>0:
         st.markdown("<span class='badge by'>ECG abnormality</span>", unsafe_allow_html=True)
-
     oldpeak = st.number_input("ST Depression", 0.0, 10.0, 1.0, 0.1, key="w_st")
     ob = ("bg","None") if oldpeak==0 else ("by","Mild") if oldpeak<=2 else ("br","Significant")
     st.markdown(f"<span class='badge {ob[0]}'>ST: {ob[1]}</span>", unsafe_allow_html=True)
-
     slope   = st.selectbox("ST Slope", [0,1,2],
                             format_func=lambda x:["Upsloping","Flat","Downsloping"][x], key="w_slope")
     slb = ("bg","Favourable") if slope==0 else ("by","Intermediate") if slope==1 else ("br","Ischaemic")
     st.markdown(f"<span class='badge {slb[0]}'>{slb[1]}</span>", unsafe_allow_html=True)
 
-# ── COL 3 · Clinical ─────────────────────────────────────────────────────
+# COL 3
 with c3:
     st.markdown("<div class='spill'>💊 Clinical Findings</div>", unsafe_allow_html=True)
-
     cp    = st.selectbox("Chest Pain", [0,1,2,3],
                           format_func=lambda x:["Typical Angina","Atypical",
                                                 "Non-anginal","Asymptomatic"][x], key="w_cp")
     cpb = ("br","Classic cardiac") if cp==0 else ("by","Possible") if cp==1 \
           else ("bg","Less likely") if cp==2 else ("by","Evaluate")
     st.markdown(f"<span class='badge {cpb[0]}'>{cpb[1]}</span>", unsafe_allow_html=True)
-
     exang = st.selectbox("Exercise Angina", [0,1],
                           format_func=lambda x:"No" if x==0 else "Yes", key="w_exang")
     st.markdown(
         f"<span class='badge {'br' if exang==1 else 'bg'}'>{'Positive' if exang==1 else 'Negative'}</span>",
         unsafe_allow_html=True)
-
     ca    = st.selectbox("Major Vessels (0–4)", [0,1,2,3,4], key="w_ca")
-    cac   = ["bg","by","br","br","br"][ca]
-    cat   = ["No blockage","1 blocked","2 blocked","3 blocked","4 blocked"][ca]
-    st.markdown(f"<span class='badge {cac}'>{cat}</span>", unsafe_allow_html=True)
-
+    st.markdown(f"<span class='badge {['bg','by','br','br','br'][ca]}'>"
+                f"{['No blockage','1 blocked','2 blocked','3 blocked','4 blocked'][ca]}</span>",
+                unsafe_allow_html=True)
     thal  = st.selectbox("Thalassemia", [0,1,2,3],
                           format_func=lambda x:["Normal","Fixed Defect",
                                                 "Reversible","Unknown"][x], key="w_thal")
@@ -379,33 +478,25 @@ with c3:
           else ("br","Ischaemic") if thal==2 else ("by","Unknown")
     st.markdown(f"<span class='badge {thb[0]}'>{thb[1]}</span>", unsafe_allow_html=True)
 
-# ── COL 4 · Notes + Predict ──────────────────────────────────────────────
+# COL 4
 with c4:
     st.markdown("<div class='spill'>📝 Notes & Predict</div>", unsafe_allow_html=True)
-
-    notes = st.text_area(
-        "Clinician Notes",
-        placeholder="Clinical observations, medications, history...\n(included in PDF report)",
-        height=148, key="w_notes", label_visibility="visible"
-    )
+    notes = st.text_area("Clinician Notes",
+                          placeholder="Clinical observations, medications,\nhistory... (included in PDF)",
+                          height=155, key="w_notes", label_visibility="visible")
     st.markdown("<div style='height:3px;'></div>", unsafe_allow_html=True)
-
     predict_btn = st.button("🔍 Predict Risk", type="primary", use_container_width=True)
-
     st.markdown("""
-    <div style="margin-top:5px;padding:4px 6px;background:#FFF3CD;
-      border-radius:5px;border-left:3px solid #F39C12;
-      font-size:.6rem;color:#856404;line-height:1.4;">
-      ⚠️ <strong>Educational tool only.</strong>
-      Not for medical diagnosis.<br>
+    <div style="margin-top:5px;padding:5px 8px;background:#FFF3CD;border-radius:6px;
+      border-left:3px solid #F39C12;font-size:.74rem;color:#856404;line-height:1.45;">
+      ⚠️ <strong>Educational tool only.</strong> Not for medical diagnosis.<br>
       LOW &lt;30% · MEDIUM 30–70% · HIGH &gt;70%
     </div>""", unsafe_allow_html=True)
 
-# ── COL 5 · Results + Download ───────────────────────────────────────────
+# COL 5 — Results
 with c5:
     st.markdown("<div class='spill'>📊 Prediction Results</div>", unsafe_allow_html=True)
 
-    # ── Run prediction (store with res_ prefix — no widget key conflict) ──
     if predict_btn:
         inp = pd.DataFrame([{
             'age':age,'sex':sex,'cp':cp,'trestbps':trestbps,'chol':chol,
@@ -426,43 +517,28 @@ with c5:
             _pred = 1 if _prob > 0.5 else 0
             st.caption("⚠️ Demo — model file not found")
 
-        # Store with res_ prefix to avoid conflicting with widget keys
-        st.session_state["res_pred"]    = _pred
-        st.session_state["res_prob"]    = _prob
-        st.session_state["res_age"]     = age
-        st.session_state["res_sex"]     = sex
-        st.session_state["res_cp"]      = cp
-        st.session_state["res_bp"]      = trestbps
-        st.session_state["res_chol"]    = chol
-        st.session_state["res_fbs"]     = fbs
-        st.session_state["res_ecg"]     = restecg
-        st.session_state["res_hr"]      = thalach
-        st.session_state["res_exang"]   = exang
-        st.session_state["res_st"]      = oldpeak
-        st.session_state["res_slope"]   = slope
-        st.session_state["res_ca"]      = ca
-        st.session_state["res_thal"]    = thal
-        st.session_state["res_notes"]   = notes
-        st.session_state["res_pname"]   = pname
-        st.session_state["res_pdob"]    = pdob
-        st.session_state["res_pref"]    = pref
+        # Store with res_ prefix — never conflicts with w_ widget keys
+        for k,v in [("res_pred",_pred),("res_prob",_prob),
+                     ("res_age",age),("res_sex",sex),("res_cp",cp),
+                     ("res_bp",trestbps),("res_chol",chol),("res_fbs",fbs),
+                     ("res_ecg",restecg),("res_hr",thalach),("res_exang",exang),
+                     ("res_st",oldpeak),("res_slope",slope),("res_ca",ca),
+                     ("res_thal",thal),("res_notes",notes),
+                     ("res_pname",pname),("res_pdob",str(pdob) if pdob else ""),
+                     ("res_pref",pref)]:
+            st.session_state[k] = v
 
-    # ── Show results ──────────────────────────────────────────────────────
     if "res_prob" in st.session_state:
-        prob = st.session_state["res_prob"]
-        pred = st.session_state["res_pred"]
-
-        risk  = "LOW" if prob < 0.3 else "MEDIUM" if prob < 0.7 else "HIGH"
+        prob  = st.session_state["res_prob"]
+        pred  = st.session_state["res_pred"]
+        risk  = "LOW" if prob<0.3 else "MEDIUM" if prob<0.7 else "HIGH"
         rcls  = {"LOW":"r-low","MEDIUM":"r-med","HIGH":"r-high"}[risk]
         ricon = {"LOW":"✅","MEDIUM":"⚡","HIGH":"⚠️"}[risk]
         rclr  = {"LOW":"#27AE60","MEDIUM":"#F39C12","HIGH":"#E74C3C"}[risk]
-        rec   = {
-            "LOW":    "Maintain healthy lifestyle & annual check-ups.",
-            "MEDIUM": "Schedule GP appointment within 4 weeks.",
-            "HIGH":   "Seek urgent cardiology referral immediately."
-        }[risk]
+        rec   = {"LOW":"Maintain healthy lifestyle & annual check-ups.",
+                 "MEDIUM":"Schedule GP appointment within 4 weeks.",
+                 "HIGH":"Seek urgent cardiology referral immediately."}[risk]
 
-        # Risk card
         st.markdown(f"""
         <div class="rcard {rcls}">
           <p class="rt">{ricon} {risk} RISK</p>
@@ -470,109 +546,83 @@ with c5:
           <p class="rr">{'❤️ Heart Disease Detected' if pred==1 else '💚 No Disease Detected'}</p>
         </div>""", unsafe_allow_html=True)
 
-        # Metrics
         m1, m2 = st.columns(2)
-        m1.metric("Confidence", f"{max(prob, 1-prob)*100:.0f}%")
+        m1.metric("Confidence", f"{max(prob,1-prob)*100:.0f}%")
         m2.metric("Result", "Disease" if pred==1 else "Healthy")
 
-        # Gauge
         fig = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=prob * 100,
-            number={'font': {'size': 15, 'color': rclr}, 'suffix': '%'},
-            title={'text': "Risk %", 'font': {'size': 9, 'color': '#C44569'}},
-            gauge={
-                'axis': {'range': [0, 100], 'tickfont': {'size': 7}},
-                'bar': {'color': rclr, 'thickness': 0.65},
-                'steps': [
-                    {'range': [0,   30],  'color': 'rgba(39,174,96,0.12)'},
-                    {'range': [30,  70],  'color': 'rgba(243,156,18,0.12)'},
-                    {'range': [70, 100],  'color': 'rgba(231,76,60,0.12)'}
-                ],
-                'threshold': {'line': {'color': '#C44569', 'width': 2}, 'value': 50}
-            }
+            mode="gauge+number", value=prob*100,
+            number={'font':{'size':16,'color':rclr},'suffix':'%'},
+            title={'text':"Risk %",'font':{'size':10,'color':'#C44569'}},
+            gauge={'axis':{'range':[0,100],'tickfont':{'size':8}},
+                   'bar':{'color':rclr,'thickness':0.65},
+                   'steps':[{'range':[0,30],'color':'rgba(39,174,96,0.12)'},
+                             {'range':[30,70],'color':'rgba(243,156,18,0.12)'},
+                             {'range':[70,100],'color':'rgba(231,76,60,0.12)'}],
+                   'threshold':{'line':{'color':'#C44569','width':2},'value':50}}
         ))
-        fig.update_layout(height=125, margin=dict(l=4,r=4,t=20,b=2),
+        fig.update_layout(height=130, margin=dict(l=4,r=4,t=22,b=2),
                           paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig, use_container_width=True)
 
-        # Recommendation text
-        st.markdown(
-            f"<p style='font-size:.7rem;color:{rclr};font-weight:700;margin:0;'>💡 {rec}</p>",
-            unsafe_allow_html=True)
+        st.markdown(f"<p style='font-size:.8rem;color:{rclr};font-weight:700;margin:0;'>💡 {rec}</p>",
+                    unsafe_allow_html=True)
 
-        # Risk factors (compact expander)
-        d = {
-            'age':   st.session_state["res_age"],
-            'sex':   st.session_state["res_sex"],
-            'cp':    st.session_state["res_cp"],
-            'trestbps': st.session_state["res_bp"],
-            'chol':  st.session_state["res_chol"],
-            'fbs':   st.session_state["res_fbs"],
-            'restecg': st.session_state["res_ecg"],
-            'thalach': st.session_state["res_hr"],
-            'exang': st.session_state["res_exang"],
-            'oldpeak': st.session_state["res_st"],
-            'slope': st.session_state["res_slope"],
-            'ca':    st.session_state["res_ca"],
-            'thal':  st.session_state["res_thal"],
-        }
+        d = {k2:st.session_state[k2] for k2 in
+             ["res_age","res_sex","res_cp","res_bp","res_chol","res_fbs",
+              "res_ecg","res_hr","res_exang","res_st","res_slope","res_ca","res_thal"]}
+        d2 = {'age':d['res_age'],'sex':d['res_sex'],'cp':d['res_cp'],
+              'trestbps':d['res_bp'],'chol':d['res_chol'],'fbs':d['res_fbs'],
+              'restecg':d['res_ecg'],'thalach':d['res_hr'],'exang':d['res_exang'],
+              'oldpeak':d['res_st'],'slope':d['res_slope'],'ca':d['res_ca'],
+              'thal':d['res_thal']}
         rfs = []
-        if d['age']       > 55: rfs.append(f"Age {d['age']} yrs — elevated risk >55")
-        if d['chol']      > 240: rfs.append(f"Cholesterol {d['chol']} mg/dL — high")
-        if d['trestbps']  > 140: rfs.append(f"BP {d['trestbps']} mmHg — hypertensive")
-        if d['fbs']       == 1:  rfs.append("Fasting blood sugar >120 mg/dL")
-        if d['exang']     == 1:  rfs.append("Exercise-induced angina present")
-        if d['oldpeak']   > 2:   rfs.append(f"ST depression {d['oldpeak']} — significant")
-        if d['ca']        > 0:   rfs.append(f"{d['ca']} major vessel(s) blocked")
-        if d['thal']      == 2:  rfs.append("Reversible thalassemia defect")
-        if d['cp']        == 0:  rfs.append("Typical angina — classic cardiac")
+        if d2['age']      >55:  rfs.append(f"Age {d2['age']} yrs — elevated risk >55")
+        if d2['chol']     >240: rfs.append(f"Cholesterol {d2['chol']} mg/dL — high")
+        if d2['trestbps'] >140: rfs.append(f"BP {d2['trestbps']} mmHg — hypertensive")
+        if d2['fbs']      ==1:  rfs.append("Fasting blood sugar >120 mg/dL")
+        if d2['exang']    ==1:  rfs.append("Exercise-induced angina present")
+        if d2['oldpeak']  >2:   rfs.append(f"ST depression {d2['oldpeak']} — significant")
+        if d2['ca']       >0:   rfs.append(f"{d2['ca']} major vessel(s) blocked")
+        if d2['thal']     ==2:  rfs.append("Reversible thalassemia defect")
+        if d2['cp']       ==0:  rfs.append("Typical angina — classic cardiac")
 
         if rfs:
-            with st.expander(f"⚠️ {len(rfs)} risk factor(s) identified", expanded=False):
+            with st.expander(f"⚠️ {len(rfs)} risk factor(s)", expanded=False):
                 for rf in rfs:
-                    st.markdown(
-                        f"<span style='font-size:.68rem;'>🔸 {rf}</span>",
-                        unsafe_allow_html=True)
+                    st.markdown(f"<span style='font-size:.78rem;'>🔸 {rf}</span>",
+                                unsafe_allow_html=True)
         else:
-            st.markdown(
-                "<span class='badge bg' style='font-size:.65rem;'>✅ No major risk factors</span>",
-                unsafe_allow_html=True)
+            st.markdown("<span class='badge bg' style='font-size:.74rem;'>"
+                        "✅ No major risk factors</span>", unsafe_allow_html=True)
 
-        # ── PDF download ──────────────────────────────────────────────────
-        html_report = make_pdf(
-            d=d, pred=pred, prob=prob, risk=risk, rec=rec, rfs=rfs,
-            notes=st.session_state.get("res_notes", ""),
-            pname=st.session_state.get("res_pname", ""),
-            pdob=st.session_state.get("res_pdob",  ""),
-            pref=st.session_state.get("res_pref",  "")
+        # TRUE PDF download
+        pdf_bytes = make_pdf_bytes(
+            d=d2, pred=pred, prob=prob, risk=risk, rec=rec, rfs=rfs,
+            notes=st.session_state.get("res_notes",""),
+            pname=st.session_state.get("res_pname",""),
+            pdob=st.session_state.get("res_pdob",""),
+            pref=st.session_state.get("res_pref","")
         )
-        b64   = base64.b64encode(html_report.encode()).decode()
-        pn    = (st.session_state.get("res_pname", "") or "Patient").replace(" ", "_")
-        fname = f"HeartRisk_{pn}_{datetime.now().strftime('%Y%m%d_%H%M')}.html"
-
-        st.markdown(f"""
-        <a href="data:text/html;base64,{b64}" download="{fname}"
-           style="text-decoration:none;display:block;margin-top:4px;">
-          <button style="width:100%;
-            background:linear-gradient(135deg,#11998e,#38ef7d);
-            color:white;font-size:.76rem;font-weight:800;padding:4px;
-            height:28px;border-radius:7px;border:none;cursor:pointer;
-            box-shadow:0 3px 10px rgba(17,153,142,.38);">
-            📄 Download PDF Report
-          </button>
-        </a>""", unsafe_allow_html=True)
-
+        pn    = (st.session_state.get("res_pname","") or "Patient").replace(" ","_")
+        fname = f"HeartRisk_{pn}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+        st.download_button(
+            label="📄 Download PDF Report",
+            data=pdf_bytes,
+            file_name=fname,
+            mime="application/pdf",
+            use_container_width=True
+        )
     else:
         st.markdown("""
-        <div style="text-align:center;padding:28px 8px;">
-          <div style="font-size:2.2rem;">❤️</div>
-          <div style="font-size:.74rem;color:#bbb;margin-top:6px;">
+        <div style="text-align:center;padding:30px 8px;">
+          <div style="font-size:2.4rem;">❤️</div>
+          <div style="font-size:.84rem;color:#bbb;margin-top:8px;">
             Fill in patient data<br>and click <strong>Predict Risk</strong>
           </div>
         </div>""", unsafe_allow_html=True)
 
-# ── Footer ────────────────────────────────────────────────────────────────
+# ── Footer ───────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="disc">
   ❤️ Heart Disease Risk Predictor &nbsp;·&nbsp;
