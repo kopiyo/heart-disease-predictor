@@ -17,19 +17,22 @@ st.set_page_config(
 # ── CSS ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* Same gradient on everything so no white gap appears anywhere */
-.stApp, [data-testid="stHeader"], [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #C44569 0%, #FF6B9D 55%, #FFA07A 100%) !important;
-    background-attachment: fixed !important;
+.stApp {
+    background: linear-gradient(-45deg,#FF6B9D,#C44569,#FFA502,#FF6348,#786FA6,#F8B500);
+    background-size:400% 400%;
+    animation:gradientShift 14s ease infinite;
 }
-[data-testid="stHeader"] { min-height:0 !important; height:0 !important; }
-/* White card: flat top (no radius) so header banner above it looks flush */
+@keyframes gradientShift {
+    0%  {background-position:0% 50%}  25%{background-position:50% 100%}
+    50% {background-position:100% 50%} 75%{background-position:50% 0%}
+    100%{background-position:0% 50%}
+}
 .main .block-container {
-    background: rgba(255,255,255,0.96);
-    border-radius: 0 0 16px 16px;
-    padding: 0 1.1rem 0.9rem 1.1rem !important;
-    max-width: 100% !important;
-    box-shadow: 0 6px 28px rgba(0,0,0,0.16);
+    background:rgba(255,255,255,0.96);
+    border-radius:16px;
+    padding:0.6rem 1.1rem 0.4rem 1.1rem !important;
+    max-width:100% !important;
+    box-shadow:0 8px 32px rgba(0,0,0,0.18);
 }
 #MainMenu,footer,[data-testid="stToolbar"],.stDeployButton,
 [data-testid="collapsedControl"],
@@ -119,12 +122,8 @@ div[data-testid="column"]{padding:0 3px!important;}
 [data-testid="metric-container"] [data-testid="stMetricValue"]{font-size:1rem!important;}
 
 .disc {
-    font-size:.72rem; color:white; text-align:center;
-    background: linear-gradient(135deg, #C44569 0%, #FF6B9D 55%, #FFA07A 100%);
-    border-radius: 10px;
-    padding: 9px 16px;
-    margin-top: 10px;
-    font-weight: 500;
+    font-size:.7rem; color:#999; text-align:center;
+    border-top:1px solid rgba(196,69,105,.12); padding-top:3px; margin-top:4px;
 }
 hr{margin:3px 0!important;border-color:rgba(196,69,105,.15)!important;}
 </style>
@@ -182,10 +181,10 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
     hdr = Table([[
         P("❤️  Heart Disease Risk Assessment Report", 15, colors.white, True),
         P(f"ID: HDR-{datetime.now().strftime('%Y%m%d%H%M%S')}<br/>"
-          f"{datetime.now().strftime('%d %B %Y, %H:%M')}<br/>"
-          "EDUCATIONAL USE ONLY", 7.5, colors.white, align=TA_RIGHT)
+          f"{datetime.now().strftime('%d %B %Y, %H:%M')}",
+          7.5, colors.white, align=TA_RIGHT)
     ],[
-        P("Logistic Regression · ROC-AUC: 0.9154 · UCI Heart Disease Dataset",
+        P("Logistic Regression · ROC-AUC: 0.9058 · UCI Heart Disease Dataset",
           8, colors.white),
         ""
     ]], colWidths=[W*0.65, W*0.35])
@@ -367,11 +366,9 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
               Spacer(1,1*mm)]
     ft = Table([[
         P("Heart Disease Prediction System · Logistic Regression · "
-          "UCI (n=302) · 5-Fold CV · Acc: 83.6% · Recall: 84.9%",
+          "UCI (n=302) · 5-Fold CV · Acc: 83.61% · Recall: 84.85% · F1: 84.85% · ROC-AUC: 0.9058",
           7.5, GREY),
-        P("⚠  Educational Tool — Not for Clinical Diagnosis",
-          7.5, PINK, True, TA_RIGHT)
-    ]], colWidths=[W*0.6, W*0.4])
+    ]], colWidths=[W])
     ft.setStyle(TableStyle([
         ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
         ("LEFTPADDING",(0,0),(-1,-1),0),("RIGHTPADDING",(0,0),(-1,-1),0),
@@ -395,7 +392,8 @@ st.markdown("""
   padding: 16px 24px 14px 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
 ">
   <div style="display:flex;align-items:center;gap:14px;">
     <span style="font-size:2.4rem;line-height:1;">❤️</span>
@@ -407,20 +405,10 @@ st.markdown("""
       </div>
       <div style="font-size:0.78rem;color:rgba(255,255,255,0.88);
                   margin-top:3px;font-weight:500;letter-spacing:0.1px;">
-        Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9154 &nbsp;·&nbsp; UCI Heart Disease Dataset
+        Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9058 &nbsp;·&nbsp; UCI Heart Disease Dataset
       </div>
     </div>
   </div>
-  <div style="
-    background:rgba(255,255,255,0.22);
-    border:1.5px solid rgba(255,255,255,0.45);
-    border-radius:20px;
-    padding:5px 14px;
-    font-size:0.74rem;
-    color:white;
-    font-weight:700;
-    white-space:nowrap;
-  ">⚠️ Educational Tool Only</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -510,8 +498,7 @@ with c4:
     st.markdown("""
     <div style="margin-top:5px;padding:5px 8px;background:#FFF3CD;border-radius:6px;
       border-left:3px solid #F39C12;font-size:.74rem;color:#856404;line-height:1.45;">
-      ⚠️ <strong>Educational tool only.</strong> Not for medical diagnosis.<br>
-      LOW &lt;30% · MEDIUM 30–70% · HIGH &gt;70%
+      LOW &lt;30% &nbsp;·&nbsp; MEDIUM 30–70% &nbsp;·&nbsp; HIGH &gt;70%
     </div>""", unsafe_allow_html=True)
 
 # COL 5 — Results
@@ -647,10 +634,8 @@ with c5:
 st.markdown("""
 <div class="disc">
   ❤️ Heart Disease Risk Predictor &nbsp;·&nbsp;
-  Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9154 &nbsp;·&nbsp;
-  UCI Dataset (n=302) &nbsp;·&nbsp; 5-Fold CV &nbsp;·&nbsp;
-  <span style="color:#E74C3C;font-weight:700;">
-    ⚠️ Educational Tool — Not for Clinical Diagnosis
-  </span>
+  Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9058 &nbsp;·&nbsp;
+  Acc: 83.61% &nbsp;·&nbsp; Recall: 84.85% &nbsp;·&nbsp; F1: 84.85% &nbsp;·&nbsp;
+  UCI Dataset (n=302) &nbsp;·&nbsp; 5-Fold CV
 </div>
 """, unsafe_allow_html=True)
