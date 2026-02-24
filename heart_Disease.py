@@ -17,22 +17,19 @@ st.set_page_config(
 # ── CSS ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-.stApp {
-    background: linear-gradient(-45deg,#FF6B9D,#C44569,#FFA502,#FF6348,#786FA6,#F8B500);
-    background-size:400% 400%;
-    animation:gradientShift 14s ease infinite;
+/* Same gradient on everything so no white gap appears anywhere */
+.stApp, [data-testid="stHeader"], [data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #C44569 0%, #FF6B9D 55%, #FFA07A 100%) !important;
+    background-attachment: fixed !important;
 }
-@keyframes gradientShift {
-    0%  {background-position:0% 50%}  25%{background-position:50% 100%}
-    50% {background-position:100% 50%} 75%{background-position:50% 0%}
-    100%{background-position:0% 50%}
-}
+[data-testid="stHeader"] { min-height:0 !important; height:0 !important; }
+/* White card: flat top (no radius) so header banner above it looks flush */
 .main .block-container {
-    background:rgba(255,255,255,0.96);
-    border-radius:16px;
-    padding:0.7rem 1.1rem 0.8rem 1.1rem !important;
-    max-width:100% !important;
-    box-shadow:0 8px 32px rgba(0,0,0,0.18);
+    background: rgba(255,255,255,0.96);
+    border-radius: 0 0 16px 16px;
+    padding: 0 1.1rem 0.9rem 1.1rem !important;
+    max-width: 100% !important;
+    box-shadow: 0 6px 28px rgba(0,0,0,0.16);
 }
 #MainMenu,footer,[data-testid="stToolbar"],.stDeployButton,
 [data-testid="collapsedControl"],
@@ -123,11 +120,11 @@ div[data-testid="column"]{padding:0 3px!important;}
 
 .disc {
     font-size:.72rem; color:white; text-align:center;
-    background:linear-gradient(135deg,#C44569,#FF6B9D);
-    border-radius:10px;
-    padding:8px 16px;
-    margin-top:8px;
-    box-shadow:0 2px 8px rgba(196,69,105,0.25);
+    background: linear-gradient(135deg, #C44569 0%, #FF6B9D 55%, #FFA07A 100%);
+    border-radius: 10px;
+    padding: 9px 16px;
+    margin-top: 10px;
+    font-weight: 500;
 }
 hr{margin:3px 0!important;border-color:rgba(196,69,105,.15)!important;}
 </style>
@@ -393,35 +390,33 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="
-  background: linear-gradient(135deg, #C44569 0%, #FF6B9D 60%, #FFA07A 100%);
-  border-radius: 12px;
-  padding: 12px 20px;
-  margin-bottom: 10px;
+  background: linear-gradient(135deg, #C44569 0%, #FF6B9D 55%, #FFA07A 100%);
+  margin: 0 -1.1rem 12px -1.1rem;
+  padding: 16px 24px 14px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 18px rgba(196,69,105,0.4);
 ">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <span style="font-size:2.2rem;line-height:1;">❤️</span>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <span style="font-size:2.4rem;line-height:1;">❤️</span>
     <div>
-      <div style="font-size:1.5rem;font-weight:900;color:white;
+      <div style="font-size:1.55rem;font-weight:900;color:white;
                   letter-spacing:-0.5px;line-height:1.15;
-                  text-shadow:0 1px 6px rgba(0,0,0,0.2);">
+                  text-shadow:0 1px 6px rgba(0,0,0,0.18);">
         Heart Disease Risk Predictor
       </div>
-      <div style="font-size:0.75rem;color:rgba(255,255,255,0.88);
-                  margin-top:2px;font-weight:500;">
+      <div style="font-size:0.78rem;color:rgba(255,255,255,0.88);
+                  margin-top:3px;font-weight:500;letter-spacing:0.1px;">
         Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9154 &nbsp;·&nbsp; UCI Heart Disease Dataset
       </div>
     </div>
   </div>
   <div style="
     background:rgba(255,255,255,0.22);
-    border:1.5px solid rgba(255,255,255,0.4);
+    border:1.5px solid rgba(255,255,255,0.45);
     border-radius:20px;
     padding:5px 14px;
-    font-size:0.73rem;
+    font-size:0.74rem;
     color:white;
     font-weight:700;
     white-space:nowrap;
@@ -654,6 +649,8 @@ st.markdown("""
   ❤️ Heart Disease Risk Predictor &nbsp;·&nbsp;
   Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9154 &nbsp;·&nbsp;
   UCI Dataset (n=302) &nbsp;·&nbsp; 5-Fold CV &nbsp;·&nbsp;
-  <strong>⚠️ Educational Tool — Not for Clinical Diagnosis</strong>
+  <span style="color:#E74C3C;font-weight:700;">
+    ⚠️ Educational Tool — Not for Clinical Diagnosis
+  </span>
 </div>
 """, unsafe_allow_html=True)
