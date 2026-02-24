@@ -30,7 +30,7 @@ st.markdown("""
 .main .block-container {
     background:rgba(255,255,255,0.96);
     border-radius:16px;
-    padding:0 1.1rem 0.4rem 1.1rem !important;
+    padding:0.7rem 1.1rem 0.8rem 1.1rem !important;
     max-width:100% !important;
     box-shadow:0 8px 32px rgba(0,0,0,0.18);
 }
@@ -122,8 +122,12 @@ div[data-testid="column"]{padding:0 3px!important;}
 [data-testid="metric-container"] [data-testid="stMetricValue"]{font-size:1rem!important;}
 
 .disc {
-    font-size:.7rem; color:#999; text-align:center;
-    border-top:1px solid rgba(196,69,105,.12); padding-top:3px; margin-top:4px;
+    font-size:.72rem; color:white; text-align:center;
+    background:linear-gradient(135deg,#C44569,#FF6B9D);
+    border-radius:10px;
+    padding:8px 16px;
+    margin-top:8px;
+    box-shadow:0 2px 8px rgba(196,69,105,0.25);
 }
 hr{margin:3px 0!important;border-color:rgba(196,69,105,.15)!important;}
 </style>
@@ -386,40 +390,41 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
 # PAGE
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ── Header — bleeds to card edges, flush at top ───────────────────────────────
+# ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="
-  background: linear-gradient(135deg, #C44569 0%, #FF6B9D 100%);
-  border-radius: 14px 14px 0 0;
-  padding: 14px 22px 12px 22px;
-  margin: -0.6rem -1.1rem 10px -1.1rem;
+  background: linear-gradient(135deg, #C44569 0%, #FF6B9D 60%, #FFA07A 100%);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 16px rgba(196,69,105,0.3);
+  box-shadow: 0 4px 18px rgba(196,69,105,0.4);
 ">
   <div style="display:flex;align-items:center;gap:12px;">
-    <span style="font-size:2.2rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));">❤️</span>
+    <span style="font-size:2.2rem;line-height:1;">❤️</span>
     <div>
-      <div style="font-size:1.45rem;font-weight:900;color:white;
-                  letter-spacing:-0.4px;line-height:1.15;
-                  text-shadow:0 1px 4px rgba(0,0,0,0.15);">
+      <div style="font-size:1.5rem;font-weight:900;color:white;
+                  letter-spacing:-0.5px;line-height:1.15;
+                  text-shadow:0 1px 6px rgba(0,0,0,0.2);">
         Heart Disease Risk Predictor
       </div>
-      <div style="font-size:0.75rem;color:rgba(255,255,255,0.85);margin-top:2px;font-weight:500;">
+      <div style="font-size:0.75rem;color:rgba(255,255,255,0.88);
+                  margin-top:2px;font-weight:500;">
         Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9154 &nbsp;·&nbsp; UCI Heart Disease Dataset
       </div>
     </div>
   </div>
   <div style="
-    background:rgba(255,255,255,0.2);
-    border:1px solid rgba(255,255,255,0.35);
+    background:rgba(255,255,255,0.22);
+    border:1.5px solid rgba(255,255,255,0.4);
     border-radius:20px;
-    padding:4px 12px;
-    font-size:0.72rem;
+    padding:5px 14px;
+    font-size:0.73rem;
     color:white;
     font-weight:700;
-    letter-spacing:0.3px;
+    white-space:nowrap;
   ">⚠️ Educational Tool Only</div>
 </div>
 """, unsafe_allow_html=True)
@@ -649,8 +654,6 @@ st.markdown("""
   ❤️ Heart Disease Risk Predictor &nbsp;·&nbsp;
   Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9154 &nbsp;·&nbsp;
   UCI Dataset (n=302) &nbsp;·&nbsp; 5-Fold CV &nbsp;·&nbsp;
-  <span style="color:#E74C3C;font-weight:700;">
-    ⚠️ Educational Tool — Not for Clinical Diagnosis
-  </span>
+  <strong>⚠️ Educational Tool — Not for Clinical Diagnosis</strong>
 </div>
 """, unsafe_allow_html=True)
