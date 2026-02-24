@@ -17,22 +17,69 @@ st.set_page_config(
 # ── CSS ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
+/* ── Animated multi-colour background ── */
 .stApp {
-    background: linear-gradient(-45deg,#FF6B9D,#C44569,#FFA502,#FF6348,#786FA6,#F8B500);
-    background-size:400% 400%;
-    animation:gradientShift 14s ease infinite;
+    background: linear-gradient(-45deg,
+        #FF6B9D, #C44569, #FF6348, #FFA502,
+        #786FA6, #F8B500, #43C6AC, #FF6B9D);
+    background-size: 600% 600%;
+    animation: bgShift 18s ease infinite;
+    min-height: 100vh;
 }
-@keyframes gradientShift {
-    0%  {background-position:0% 50%}  25%{background-position:50% 100%}
-    50% {background-position:100% 50%} 75%{background-position:50% 0%}
-    100%{background-position:0% 50%}
+@keyframes bgShift {
+    0%   { background-position: 0%   50%; }
+    20%  { background-position: 50%  100%; }
+    40%  { background-position: 100% 50%; }
+    60%  { background-position: 50%  0%; }
+    80%  { background-position: 25%  75%; }
+    100% { background-position: 0%   50%; }
 }
+/* Soft glowing orbs floating behind card */
+.stApp::before {
+    content: '';
+    position: fixed;
+    top: -150px; left: -150px;
+    width: 550px; height: 550px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    animation: orbFloat1 14s ease-in-out infinite;
+    pointer-events: none; z-index: 0;
+}
+.stApp::after {
+    content: '';
+    position: fixed;
+    bottom: -120px; right: -120px;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    animation: orbFloat2 17s ease-in-out infinite;
+    pointer-events: none; z-index: 0;
+}
+@keyframes orbFloat1 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(70px,50px) scale(1.18); }
+}
+@keyframes orbFloat2 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(-55px,-40px) scale(1.12); }
+}
+/* Hide Streamlit top bar */
+[data-testid="stHeader"] {
+    background: transparent !important;
+    height: 0 !important;
+}
+/* ── Floating white card — padded away from all edges ── */
 .main .block-container {
-    background:rgba(255,255,255,0.96);
-    border-radius:16px;
-    padding:0.6rem 1.1rem 0.4rem 1.1rem !important;
-    max-width:100% !important;
-    box-shadow:0 8px 32px rgba(0,0,0,0.18);
+    background: rgba(255,255,255,0.97);
+    border-radius: 20px;
+    padding: 0 1.4rem 1.2rem 1.4rem !important;
+    max-width: 1380px !important;
+    margin: 20px auto 20px auto !important;
+    box-shadow:
+        0 25px 70px rgba(0,0,0,0.25),
+        0 0 0 1px rgba(255,255,255,0.3);
+    position: relative;
+    z-index: 1;
 }
 #MainMenu,footer,[data-testid="stToolbar"],.stDeployButton,
 [data-testid="collapsedControl"],
@@ -122,8 +169,12 @@ div[data-testid="column"]{padding:0 3px!important;}
 [data-testid="metric-container"] [data-testid="stMetricValue"]{font-size:1rem!important;}
 
 .disc {
-    font-size:.7rem; color:#999; text-align:center;
-    border-top:1px solid rgba(196,69,105,.12); padding-top:3px; margin-top:4px;
+    font-size:.73rem; color:white; text-align:center; font-weight:500;
+    background: linear-gradient(135deg, #C44569 0%, #FF6B9D 55%, #FFA07A 100%);
+    border-radius: 12px;
+    padding: 10px 18px;
+    margin-top: 12px;
+    box-shadow: 0 3px 12px rgba(196,69,105,0.3);
 }
 hr{margin:3px 0!important;border-color:rgba(196,69,105,.15)!important;}
 </style>
@@ -181,8 +232,8 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
     hdr = Table([[
         P("❤️  Heart Disease Risk Assessment Report", 15, colors.white, True),
         P(f"ID: HDR-{datetime.now().strftime('%Y%m%d%H%M%S')}<br/>"
-          f"{datetime.now().strftime('%d %B %Y, %H:%M')}",
-          7.5, colors.white, align=TA_RIGHT)
+          f"{datetime.now().strftime('%d %B %Y, %H:%M')}<br/>"
+          "EDUCATIONAL USE ONLY", 7.5, colors.white, align=TA_RIGHT)
     ],[
         P("Logistic Regression · ROC-AUC: 0.9058 · UCI Heart Disease Dataset",
           8, colors.white),
@@ -366,7 +417,7 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
               Spacer(1,1*mm)]
     ft = Table([[
         P("Heart Disease Prediction System · Logistic Regression · "
-          "UCI (n=302) · 5-Fold CV · Acc: 83.61% · Recall: 84.85% · F1: 84.85% · ROC-AUC: 0.9058",
+          "UCI (n=302) · 5-Fold CV · Acc: 83.61% · Recall: 84.85% · F1: 84.85%",
           7.5, GREY),
     ]], colWidths=[W])
     ft.setStyle(TableStyle([
@@ -388,25 +439,26 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
 st.markdown("""
 <div style="
   background: linear-gradient(135deg, #C44569 0%, #FF6B9D 55%, #FFA07A 100%);
-  margin: 0 -1.1rem 12px -1.1rem;
-  padding: 16px 24px 14px 24px;
+  border-radius: 16px 16px 0 0;
+  margin: 0 -1.4rem 14px -1.4rem;
+  padding: 18px 28px 16px 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
+  gap: 14px;
+  box-shadow: 0 4px 20px rgba(196,69,105,0.3);
 ">
-  <div style="display:flex;align-items:center;gap:14px;">
-    <span style="font-size:2.4rem;line-height:1;">❤️</span>
-    <div>
-      <div style="font-size:1.55rem;font-weight:900;color:white;
-                  letter-spacing:-0.5px;line-height:1.15;
-                  text-shadow:0 1px 6px rgba(0,0,0,0.18);">
-        Heart Disease Risk Predictor
-      </div>
-      <div style="font-size:0.78rem;color:rgba(255,255,255,0.88);
-                  margin-top:3px;font-weight:500;letter-spacing:0.1px;">
-        Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9058 &nbsp;·&nbsp; UCI Heart Disease Dataset
-      </div>
+  <span style="font-size:2.6rem;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.2));">❤️</span>
+  <div style="text-align:center;">
+    <div style="font-size:1.6rem;font-weight:900;color:white;
+                letter-spacing:-0.5px;line-height:1.15;
+                text-shadow:0 2px 8px rgba(0,0,0,0.2);">
+      Heart Disease Risk Predictor
+    </div>
+    <div style="font-size:0.8rem;color:rgba(255,255,255,0.9);
+                margin-top:4px;font-weight:500;letter-spacing:0.2px;">
+      Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9058 &nbsp;·&nbsp;
+      Acc 83.61% &nbsp;·&nbsp; Recall 84.85% &nbsp;·&nbsp; UCI Heart Disease Dataset
     </div>
   </div>
 </div>
