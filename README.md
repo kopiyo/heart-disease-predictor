@@ -3,7 +3,7 @@
 <img width="500" height="450" alt="image" src="https://github.com/user-attachments/assets/7d7ec3ca-81f4-491f-a010-12f10efcc448" />
 
 
-A machine learning web application for predicting coronary heart disease (CHD) risk from clinical patient data.
+A machine learning web application for predicting coronary heart disease (CHD) risk from clinical patient data. 
 
 **Live Demo**
 
