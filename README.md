@@ -1,6 +1,13 @@
 **Heart Disease Risk Predictor**
 
+<img width="500" height="450" alt="image" src="https://github.com/user-attachments/assets/7d7ec3ca-81f4-491f-a010-12f10efcc448" />
+
+
 A machine learning web application for predicting coronary heart disease (CHD) risk from clinical patient data.
+
+**Live Demo**
+
+https://heart-disease-risk-predictor-app.streamlit.app/ 
 
 **Overview**
 
@@ -11,6 +18,7 @@ An interactive speedometer gauge
 A downloadable PDF patient report
 
 It was developed as part of a research project comparing multiple machine learning classifiers on the UCI Heart Disease dataset, demonstrating how a trained ML model can be made accessible to non-technical users through a clean web interface.
+
 
 **Model Performance**
 <img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/c5baf220-deca-4c1d-a71b-e38fa840fd53" />
