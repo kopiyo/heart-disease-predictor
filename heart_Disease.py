@@ -17,180 +17,166 @@ st.set_page_config(
 # ── CSS ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ══ Animated background: 8-colour smooth cycle ══ */
+/* ── Animated multi-colour background ── */
 .stApp {
     background: linear-gradient(-45deg,
         #FF6B9D, #C44569, #FF6348, #FFA502,
-        #786FA6, #F8B500, #43C6AC, #2980B9,
-        #FF6B9D);
-    background-size: 700% 700%;
-    animation: bgShift 20s ease infinite;
+        #786FA6, #F8B500, #43C6AC, #FF6B9D);
+    background-size: 600% 600%;
+    animation: bgShift 18s ease infinite;
     min-height: 100vh;
 }
 @keyframes bgShift {
     0%   { background-position: 0%   50%; }
-    15%  { background-position: 30%  100%; }
-    30%  { background-position: 60%  30%; }
-    50%  { background-position: 100% 50%; }
-    70%  { background-position: 60%  80%; }
-    85%  { background-position: 20%  10%; }
+    20%  { background-position: 50%  100%; }
+    40%  { background-position: 100% 50%; }
+    60%  { background-position: 50%  0%; }
+    80%  { background-position: 25%  75%; }
     100% { background-position: 0%   50%; }
 }
-/* Glowing orb top-left */
+/* Soft glowing orbs floating behind card */
 .stApp::before {
-    content:''; position:fixed;
-    top:-180px; left:-180px;
-    width:600px; height:600px; border-radius:50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, transparent 65%);
-    animation: orb1 16s ease-in-out infinite; pointer-events:none; z-index:0;
+    content: '';
+    position: fixed;
+    top: -150px; left: -150px;
+    width: 550px; height: 550px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    animation: orbFloat1 14s ease-in-out infinite;
+    pointer-events: none; z-index: 0;
 }
-/* Glowing orb bottom-right */
 .stApp::after {
-    content:''; position:fixed;
-    bottom:-160px; right:-160px;
-    width:520px; height:520px; border-radius:50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, transparent 65%);
-    animation: orb2 19s ease-in-out infinite; pointer-events:none; z-index:0;
+    content: '';
+    position: fixed;
+    bottom: -120px; right: -120px;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    animation: orbFloat2 17s ease-in-out infinite;
+    pointer-events: none; z-index: 0;
 }
-@keyframes orb1 { 0%,100%{transform:translate(0,0) scale(1)}  50%{transform:translate(80px,55px) scale(1.2);} }
-@keyframes orb2 { 0%,100%{transform:translate(0,0) scale(1)}  50%{transform:translate(-65px,-45px) scale(1.15);} }
-
-/* ══ Streamlit chrome: hidden ══ */
-#MainMenu,footer,[data-testid="stToolbar"],.stDeployButton,
-[data-testid="collapsedControl"],
-section[data-testid="stSidebar"] { display:none!important; }
-[data-testid="stHeader"] { background:transparent!important; height:0!important; }
-
-/* ══ Floating white card ══ */
+@keyframes orbFloat1 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(70px,50px) scale(1.18); }
+}
+@keyframes orbFloat2 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(-55px,-40px) scale(1.12); }
+}
+/* Hide Streamlit top bar */
+[data-testid="stHeader"] {
+    background: transparent !important;
+    height: 0 !important;
+}
+/* ── Floating white card — padded away from all edges ── */
 .main .block-container {
     background: rgba(255,255,255,0.97);
-    border-radius: 22px;
-    padding: 0 1.5rem 1.2rem 1.5rem !important;
-    max-width: 1400px !important;
-    margin: 22px auto 22px auto !important;
+    border-radius: 20px;
+    padding: 0 1.4rem 0.4rem 1.4rem !important;
+    max-width: 1380px !important;
+    margin: 10px auto 10px auto !important;
     box-shadow:
-        0 30px 80px rgba(0,0,0,0.28),
-        0 0 0 1px rgba(255,255,255,0.25),
-        inset 0 1px 0 rgba(255,255,255,0.8);
-    position: relative; z-index:1;
+        0 25px 70px rgba(0,0,0,0.25),
+        0 0 0 1px rgba(255,255,255,0.3);
+    position: relative;
+    z-index: 1;
 }
+#MainMenu,footer,[data-testid="stToolbar"],.stDeployButton,
+[data-testid="collapsedControl"],
+section[data-testid="stSidebar"]{display:none!important;}
 
-/* ══ Global font ══ */
-* { font-family:'Segoe UI',Arial,sans-serif!important; }
+*{font-family:'Segoe UI',Arial,sans-serif!important;}
 
-/* ══ Inputs ══ */
+/* ── Compact input sizing ── */
 .stNumberInput input {
-    font-size:.9rem!important; padding:2px 8px!important;
-    height:33px!important; border-radius:7px!important;
-    border:1.5px solid #e8e8e8!important; transition:border-color .2s!important;
+    font-size:.82rem!important; padding:1px 6px!important;
+    height:26px!important; border-radius:5px!important;
 }
-.stNumberInput input:focus { border-color:#FF6B9D!important; }
 .stNumberInput [data-testid="stNumberInputStepDown"],
-.stNumberInput [data-testid="stNumberInputStepUp"] { width:26px!important; height:33px!important; }
+.stNumberInput [data-testid="stNumberInputStepUp"] {
+    width:20px!important; height:26px!important;
+}
 .stSelectbox>div>div {
-    font-size:.9rem!important; min-height:33px!important;
-    padding:2px 8px!important; border-radius:7px!important;
+    font-size:.82rem!important; min-height:26px!important;
+    padding:1px 6px!important; border-radius:5px!important;
 }
 .stTextArea textarea {
-    font-size:.86rem!important; padding:5px 8px!important;
-    border-radius:7px!important; resize:none!important; line-height:1.45!important;
-    border:1.5px solid #e8e8e8!important;
+    font-size:.8rem!important; padding:3px 6px!important;
+    border-radius:5px!important; resize:none!important; line-height:1.3!important;
 }
-.stTextInput input, .stDateInput input {
-    font-size:.86rem!important; padding:2px 8px!important;
-    height:32px!important; border-radius:7px!important;
-    border:1.5px solid #e8e8e8!important;
+.stTextInput input {
+    font-size:.8rem!important; padding:1px 6px!important;
+    height:26px!important; border-radius:5px!important;
 }
-/* Labels */
+.stDateInput input {
+    font-size:.8rem!important; padding:1px 6px!important;
+    height:26px!important; border-radius:5px!important;
+}
+/* Compact labels */
 .stNumberInput label,.stSelectbox label,
 .stTextArea label,.stTextInput label,.stDateInput label {
-    font-size:.8rem!important; margin-bottom:1px!important; padding:0!important;
-    color:#666!important; font-weight:600!important; line-height:1.3!important;
+    font-size:.73rem!important; margin-bottom:0!important; padding:0!important;
+    color:#555!important; font-weight:600!important; line-height:1.1!important;
 }
-[data-testid="stVerticalBlock"]>div { gap:0!important; }
-.element-container { margin:0!important; padding:0!important; }
-div[data-testid="column"] { padding:0 4px!important; }
+[data-testid="stVerticalBlock"]>div{gap:0!important;}
+.element-container{margin:0!important;padding:0!important;}
+div[data-testid="column"]{padding:0 3px!important;}
 
-/* ══ Section pill ══ */
 .spill {
-    font-size:.77rem; font-weight:800; color:white;
+    font-size:.7rem; font-weight:800; color:white;
     background:linear-gradient(135deg,#C44569,#FF6B9D);
-    border-radius:7px; padding:3px 10px;
-    display:inline-block; margin-bottom:4px;
-    box-shadow:0 2px 8px rgba(196,69,105,0.3);
+    border-radius:6px; padding:1px 8px; display:inline-block; margin-bottom:2px;
 }
-
-/* ══ Badges ══ */
 .badge {
-    display:inline-block; font-size:.69rem; font-weight:700;
-    padding:2px 7px; border-radius:8px; margin:1px 0 4px 0; line-height:1.5;
+    display:inline-block; font-size:.63rem; font-weight:700;
+    padding:0px 5px; border-radius:8px; margin:0 0 2px 0; line-height:1.4;
 }
-.bg { background:#d4edda; color:#155724; }
-.by { background:#fff3cd; color:#856404; }
-.br { background:#f8d7da; color:#721c24; }
+.bg{background:#d4edda;color:#155724;}
+.by{background:#fff3cd;color:#856404;}
+.br{background:#f8d7da;color:#721c24;}
 
-/* ══ Risk result card ══ */
 .rcard {
-    border-radius:12px; padding:10px 13px; margin:4px 0;
-    border-left:4px solid; animation:popIn .35s cubic-bezier(.34,1.56,.64,1);
+    border-radius:8px; padding:5px 9px; margin:2px 0;
+    border-left:4px solid; animation:popIn .3s ease;
 }
-@keyframes popIn { 0%{opacity:0;transform:scale(.85)} 100%{opacity:1;transform:scale(1)} }
-.r-low  { background:linear-gradient(135deg,#43C6AC,#191654); border-color:#43C6AC; }
-.r-med  { background:linear-gradient(135deg,#F2994A,#F2C94C); border-color:#F2994A; }
-.r-high { background:linear-gradient(135deg,#EB5757,#FF6B9D); border-color:#EB5757; }
-.rcard p { color:white!important; margin:0!important; }
-.rcard .rt { font-size:1.08rem; font-weight:900; }
-.rcard .rp { font-size:.87rem; margin-top:3px!important; }
-.rcard .rr { font-size:.75rem; opacity:.92; margin-top:2px!important; }
+@keyframes popIn{0%{opacity:0;transform:scale(.9)}100%{opacity:1;transform:scale(1)}}
+.r-low {background:linear-gradient(135deg,#43C6AC,#191654);border-color:#43C6AC;}
+.r-med {background:linear-gradient(135deg,#F2994A,#F2C94C);border-color:#F2994A;}
+.r-high{background:linear-gradient(135deg,#EB5757,#FF6B9D);border-color:#EB5757;}
+.rcard p{color:white!important;margin:0!important;}
+.rcard .rt{font-size:.92rem;font-weight:900;}
+.rcard .rp{font-size:.78rem;margin-top:1px!important;}
+.rcard .rr{font-size:.68rem;opacity:.9;margin-top:0px!important;}
 
-/* ══ Predict button (pink) ══ */
 .stButton>button {
     background:linear-gradient(135deg,#FF6B9D,#C44569)!important;
-    color:white!important; font-weight:800!important; font-size:.92rem!important;
-    padding:4px 0!important; height:38px!important; border-radius:10px!important;
+    color:white!important; font-weight:800!important; font-size:.82rem!important;
+    padding:2px 0!important; height:28px!important; border-radius:7px!important;
     border:none!important; width:100%!important;
-    box-shadow:0 4px 15px rgba(255,107,157,.45)!important;
-    transition:all .25s cubic-bezier(.34,1.56,.64,1)!important;
-    letter-spacing:0.3px!important;
+    box-shadow:0 3px 12px rgba(255,107,157,.42)!important; transition:all .25s!important;
 }
 .stButton>button:hover {
-    transform:translateY(-2px) scale(1.01)!important;
-    box-shadow:0 8px 22px rgba(255,107,157,.6)!important;
+    transform:translateY(-1px)!important;
+    box-shadow:0 5px 18px rgba(255,107,157,.58)!important;
 }
-
-/* ══ Download button (teal green) ══ */
-[data-testid="stDownloadButton"]>button {
-    background:linear-gradient(135deg,#11998e,#38ef7d)!important;
-    color:white!important; font-weight:800!important; font-size:.88rem!important;
-    height:38px!important; border-radius:10px!important; border:none!important;
-    box-shadow:0 4px 14px rgba(17,153,142,.4)!important;
-    transition:all .25s cubic-bezier(.34,1.56,.64,1)!important;
-    letter-spacing:0.3px!important;
-}
-[data-testid="stDownloadButton"]>button:hover {
-    transform:translateY(-2px) scale(1.01)!important;
-    box-shadow:0 8px 20px rgba(17,153,142,.55)!important;
-}
-
-/* ══ Metrics ══ */
 [data-testid="metric-container"] {
-    background:linear-gradient(135deg,#fafafa,#f3f3f3)!important;
-    border-radius:9px!important; padding:4px 10px!important;
+    background:linear-gradient(135deg,#fafafa,#f0f0f0)!important;
+    border-radius:6px!important; padding:2px 6px!important;
     border-left:3px solid #FF6B9D!important;
-    box-shadow:0 2px 8px rgba(0,0,0,.07)!important;
+    box-shadow:0 1px 5px rgba(0,0,0,.07)!important;
 }
-[data-testid="metric-container"] label { font-size:.72rem!important; color:#888!important; }
-[data-testid="metric-container"] [data-testid="stMetricValue"] { font-size:1.05rem!important; }
+[data-testid="metric-container"] label{font-size:.65rem!important;}
+[data-testid="metric-container"] [data-testid="stMetricValue"]{font-size:.9rem!important;}
 
-/* ══ Footer pill ══ */
 .disc {
-    font-size:.73rem; color:white; text-align:center; font-weight:500;
-    background:linear-gradient(135deg,#C44569 0%,#FF6B9D 55%,#FFA07A 100%);
-    border-radius:12px; padding:10px 18px; margin-top:14px;
-    box-shadow:0 4px 14px rgba(196,69,105,0.35);
-    letter-spacing:0.1px;
+    font-size:.68rem; color:white; text-align:center; font-weight:500;
+    background: linear-gradient(135deg, #C44569 0%, #FF6B9D 55%, #FFA07A 100%);
+    border-radius: 10px;
+    padding: 5px 14px;
+    margin-top: 6px;
+    box-shadow: 0 3px 12px rgba(196,69,105,0.3);
 }
-hr { margin:4px 0!important; border-color:rgba(196,69,105,.12)!important; }
+hr{margin:3px 0!important;border-color:rgba(196,69,105,.15)!important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -249,7 +235,7 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
           f"{datetime.now().strftime('%d %B %Y, %H:%M')}<br/>"
           "EDUCATIONAL USE ONLY", 7.5, colors.white, align=TA_RIGHT)
     ],[
-        P("Logistic Regression · ROC-AUC: 0.9058 · UCI Heart Disease Dataset",
+        P("SVC (Tuned) · ROC-AUC: 0.9481 · Cleveland + Statlog + Hungarian Dataset (n=918)",
           8, colors.white),
         ""
     ]], colWidths=[W*0.65, W*0.35])
@@ -430,12 +416,10 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
     story += [Spacer(1,4*mm), HRFlowable(width=W, thickness=0.5, color=BORD),
               Spacer(1,1*mm)]
     ft = Table([[
-        P("Heart Disease Prediction System · Logistic Regression · "
-          "UCI (n=302) · 5-Fold CV · Acc: 83.6% · Recall: 84.9%",
+        P("Heart Disease Prediction System · SVC (Tuned) · "
+          "Cleveland + Statlog + Hungarian (n=918) · 5-Fold CV · Recall: 94.12% · F1: 91.43% · ROC-AUC: 94.81%",
           7.5, GREY),
-        P("Logistic Regression · Acc: 83.61% · Recall: 84.85% · F1: 84.85% · ROC-AUC: 0.9058",
-          7.5, GREY, align=TA_RIGHT)
-    ]], colWidths=[W*0.55, W*0.45])
+    ]], colWidths=[W])
     ft.setStyle(TableStyle([
         ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
         ("LEFTPADDING",(0,0),(-1,-1),0),("RIGHTPADDING",(0,0),(-1,-1),0),
@@ -454,42 +438,30 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="
-  background: linear-gradient(135deg, #C44569 0%, #FF6B9D 50%, #FFA07A 100%);
-  border-radius: 20px 20px 0 0;
-  margin: 0 -1.5rem 16px -1.5rem;
-  padding: 20px 32px 18px 32px;
+  background: linear-gradient(135deg, #C44569 0%, #FF6B9D 55%, #FFA07A 100%);
+  border-radius: 16px 16px 0 0;
+  margin: 0 -1.4rem 8px -1.4rem;
+  padding: 10px 28px 9px 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  box-shadow: 0 4px 20px rgba(196,69,105,0.25);
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(196,69,105,0.3);
 ">
-  <span style="font-size:2.8rem;line-height:1;
-               filter:drop-shadow(0 3px 8px rgba(0,0,0,0.22));
-               animation:heartbeat 2.4s ease-in-out infinite;">❤️</span>
+  <span style="font-size:1.9rem;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.2));">❤️</span>
   <div style="text-align:center;">
-    <div style="font-size:1.65rem;font-weight:900;color:white;
-                letter-spacing:-0.6px;line-height:1.15;
-                text-shadow:0 2px 10px rgba(0,0,0,0.2);">
+    <div style="font-size:1.25rem;font-weight:900;color:white;
+                letter-spacing:-0.5px;line-height:1.15;
+                text-shadow:0 2px 8px rgba(0,0,0,0.2);">
       Heart Disease Risk Predictor
     </div>
-    <div style="font-size:0.8rem;color:rgba(255,255,255,0.92);
-                margin-top:5px;font-weight:500;letter-spacing:0.2px;">
-      Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9058 &nbsp;·&nbsp;
-      Acc 83.61% &nbsp;·&nbsp; Recall 84.85% &nbsp;·&nbsp; F1 84.85% &nbsp;·&nbsp;
-      UCI Heart Disease Dataset (n=302)
+    <div style="font-size:0.72rem;color:rgba(255,255,255,0.9);
+                margin-top:2px;font-weight:500;letter-spacing:0.2px;">
+      SVC (Tuned) &nbsp;·&nbsp; ROC-AUC 0.9481 &nbsp;·&nbsp;
+      Recall 94.12% &nbsp;·&nbsp; F1 91.43% &nbsp;·&nbsp; Cleveland + Statlog + Hungarian (n=918)
     </div>
   </div>
 </div>
-<style>
-@keyframes heartbeat {
-  0%,100%{transform:scale(1)}
-  14%    {transform:scale(1.15)}
-  28%    {transform:scale(1)}
-  42%    {transform:scale(1.1)}
-  56%    {transform:scale(1)}
-}
-</style>
 """, unsafe_allow_html=True)
 
 # ── Patient row ───────────────────────────────────────────────────────────────
@@ -572,14 +544,13 @@ with c4:
     st.markdown("<div class='spill'>📝 Notes & Predict</div>", unsafe_allow_html=True)
     notes = st.text_area("Clinician Notes",
                           placeholder="Clinical observations, medications,\nhistory... (included in PDF)",
-                          height=155, key="w_notes", label_visibility="visible")
+                          height=100, key="w_notes", label_visibility="visible")
     st.markdown("<div style='height:3px;'></div>", unsafe_allow_html=True)
     predict_btn = st.button("🔍 Predict Risk", type="primary", use_container_width=True)
     st.markdown("""
-    <div style="margin-top:6px;padding:6px 10px;background:#FFF3CD;border-radius:8px;
-      border-left:3px solid #F39C12;font-size:.76rem;color:#856404;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-      🟡 <strong>LOW</strong> &lt;30% &nbsp; 🟠 <strong>MEDIUM</strong> 30–70% &nbsp; 🔴 <strong>HIGH</strong> &gt;70%
+    <div style="margin-top:5px;padding:5px 8px;background:#FFF3CD;border-radius:6px;
+      border-left:3px solid #F39C12;font-size:.74rem;color:#856404;line-height:1.45;">
+      LOW &lt;30% &nbsp;·&nbsp; MEDIUM 30–70% &nbsp;·&nbsp; HIGH &gt;70%
     </div>""", unsafe_allow_html=True)
 
 # COL 5 — Results
@@ -604,7 +575,7 @@ with c5:
             random.seed(age + sex + cp + ca + int(oldpeak * 10))
             _prob = round(random.uniform(0.2, 0.8), 3)
             _pred = 1 if _prob > 0.5 else 0
-            st.caption("⚠️ Demo — model file not found")
+            st.caption("model file not found")
 
         # Store with res_ prefix — never conflicts with w_ widget keys
         for k,v in [("res_pred",_pred),("res_prob",_prob),
@@ -650,7 +621,7 @@ with c5:
                              {'range':[70,100],'color':'rgba(231,76,60,0.12)'}],
                    'threshold':{'line':{'color':'#C44569','width':2},'value':50}}
         ))
-        fig.update_layout(height=130, margin=dict(l=4,r=4,t=22,b=2),
+        fig.update_layout(height=110, margin=dict(l=4,r=4,t=18,b=2),
                           paper_bgcolor='rgba(0,0,0,0)')
         st.plotly_chart(fig, use_container_width=True)
 
@@ -715,8 +686,8 @@ with c5:
 st.markdown("""
 <div class="disc">
   ❤️ Heart Disease Risk Predictor &nbsp;·&nbsp;
-  Logistic Regression &nbsp;·&nbsp; ROC-AUC 0.9058 &nbsp;·&nbsp;
-  Acc: 83.61% &nbsp;·&nbsp; Recall: 84.85% &nbsp;·&nbsp; F1: 84.85% &nbsp;·&nbsp;
-  UCI Dataset (n=302) &nbsp;·&nbsp; 5-Fold CV
+  SVC (Tuned) &nbsp;·&nbsp; ROC-AUC 0.9481 &nbsp;·&nbsp;
+  Recall: 94.12% &nbsp;·&nbsp; F1: 91.43% &nbsp;·&nbsp;
+  Cleveland + Statlog + Hungarian (n=918) &nbsp;·&nbsp; 5-Fold CV
 </div>
 """, unsafe_allow_html=True)
