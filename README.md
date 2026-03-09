@@ -26,18 +26,9 @@ The app accepts the following 13 clinical features collected during a standard p
 
 
 **Application Output**
-<img width="777" height="365" alt="image" src="https://github.com/user-attachments/assets/e1fab426-87fe-40f5-ae9d-52f5f8127921" />
+<img width="450" height="400" alt="image" src="https://github.com/user-attachments/assets/e1fab426-87fe-40f5-ae9d-52f5f8127921" />
 
 
-
-**Project Structure**
-
-├── heart_Disease.py               # Main Streamlit application
-├── heart_disease_model.joblib     # Trained and serialised SVC pipeline
-├── heart_statlog_cleveland_hungary_final.xls                      # Source dataset (UCI Heart Disease)
-├── Heart_Disease_v2.ipynb  # Full analysis and model training notebook
-├── requirements.txt               # Python dependencies
-└── README.md
 
 **Disclaimer**
 
