@@ -21,10 +21,13 @@ It was developed as part of a research project comparing multiple machine learni
 
 
 **Model Performance**
+
+
 <img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/c5baf220-deca-4c1d-a71b-e38fa840fd53" />
 
 
 **Four classifiers were compared during development:**
+
 Logistic Regression, Random Forest, Gradient Boosting, and SVC. SVC with tuned hyperparameters achieved the best overall performance and was selected for deployment.
 
 
@@ -44,6 +47,9 @@ The app accepts the following 13 clinical features collected during a standard p
 
 
 **👩‍💻 Author**
+
 **Diana Atieno Opiyo**
+
 **Department of Computing, Grand Valley State University**
+
 **Allendale, MI 49401, USA**
