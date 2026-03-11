@@ -32,8 +32,9 @@ Logistic Regression, Random Forest, Gradient Boosting, and SVC. SVC with tuned h
 
 
 **Input Features**
-The app accepts the following 13 clinical features collected during a standard patient consultation:
-<img width="450" height="400" alt="image" src="https://github.com/user-attachments/assets/d6ace23b-ee3e-4cbe-bf34-9003a778d247" />
+The app accepts the following 11 clinical features collected during a standard patient consultation:
+<img width="631" height="425" alt="image" src="https://github.com/user-attachments/assets/ee88d005-4ca1-4566-8eb6-207eb222d44d" />
+
 
 
 **Application Output**
