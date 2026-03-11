@@ -349,7 +349,6 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
     cp_s  = ["Typical Angina","Atypical Angina","Non-anginal Pain","Asymptomatic"][d["cp"]]
     ecg_s = ["Normal","ST-T Abnormality","LV Hypertrophy"][d["restecg"]]
     sl_s  = ["Upsloping","Flat","Downsloping"][d["slope"]]
-    th_s  = ["Normal","Fixed Defect","Reversible Defect","Unknown"][d["thal"]]
     fbs_s = "Yes" if d["fbs"]==1 else "No"
     ex_s  = "Yes" if d["exang"]==1 else "No"
     cw = (W - 4*mm) / 2
@@ -388,8 +387,7 @@ def make_pdf_bytes(d, pred, prob, risk, rec, rfs, notes, pname, pdob, pref):
 
     row2 = Table([[
         card("💊  CLINICAL FINDINGS", [
-            ("Chest Pain",cp_s),("Exercise Angina",ex_s),
-            ("Major Vessels",str(d['ca'])),("Thalassemia",th_s)]),
+            ("Chest Pain",cp_s),("Exercise Angina",ex_s)]),
         rf_card
     ]], colWidths=[cw, cw])
     row2.setStyle(TableStyle([
@@ -528,16 +526,7 @@ with c3:
     st.markdown(
         f"<span class='badge {'br' if exang==1 else 'bg'}'>{'Positive' if exang==1 else 'Negative'}</span>",
         unsafe_allow_html=True)
-    ca    = st.selectbox("Major Vessels (0–4)", [0,1,2,3,4], key="w_ca")
-    st.markdown(f"<span class='badge {['bg','by','br','br','br'][ca]}'>"
-                f"{['No blockage','1 blocked','2 blocked','3 blocked','4 blocked'][ca]}</span>",
-                unsafe_allow_html=True)
-    thal  = st.selectbox("Thalassemia", [0,1,2,3],
-                          format_func=lambda x:["Normal","Fixed Defect",
-                                                "Reversible","Unknown"][x], key="w_thal")
-    thb = ("bg","Normal") if thal==0 else ("by","Permanent") if thal==1 \
-          else ("br","Ischaemic") if thal==2 else ("by","Unknown")
-    st.markdown(f"<span class='badge {thb[0]}'>{thb[1]}</span>", unsafe_allow_html=True)
+
 
 # COL 4
 with c4:
@@ -561,7 +550,7 @@ with c5:
         inp = pd.DataFrame([{
             'age':age,'sex':sex,'cp':cp,'trestbps':trestbps,'chol':chol,
             'fbs':fbs,'restecg':restecg,'thalach':thalach,'exang':exang,
-            'oldpeak':oldpeak,'slope':slope,'ca':ca,'thal':thal
+            'oldpeak':oldpeak,'slope':slope
         }])
         if model is not None:
             try:
@@ -572,7 +561,7 @@ with c5:
                 _pred, _prob = 0, 0.5
         else:
             import random
-            random.seed(age + sex + cp + ca + int(oldpeak * 10))
+            random.seed(age + sex + cp + int(oldpeak * 10))
             _prob = round(random.uniform(0.2, 0.8), 3)
             _pred = 1 if _prob > 0.5 else 0
             st.caption("model file not found")
@@ -582,8 +571,8 @@ with c5:
                      ("res_age",age),("res_sex",sex),("res_cp",cp),
                      ("res_bp",trestbps),("res_chol",chol),("res_fbs",fbs),
                      ("res_ecg",restecg),("res_hr",thalach),("res_exang",exang),
-                     ("res_st",oldpeak),("res_slope",slope),("res_ca",ca),
-                     ("res_thal",thal),("res_notes",notes),
+                     ("res_st",oldpeak),("res_slope",slope),
+                     ("res_notes",notes),
                      ("res_pname",pname),("res_pdob",str(pdob) if pdob else ""),
                      ("res_pref",pref)]:
             st.session_state[k] = v
@@ -630,12 +619,11 @@ with c5:
 
         d = {k2:st.session_state[k2] for k2 in
              ["res_age","res_sex","res_cp","res_bp","res_chol","res_fbs",
-              "res_ecg","res_hr","res_exang","res_st","res_slope","res_ca","res_thal"]}
+              "res_ecg","res_hr","res_exang","res_st","res_slope"]}
         d2 = {'age':d['res_age'],'sex':d['res_sex'],'cp':d['res_cp'],
               'trestbps':d['res_bp'],'chol':d['res_chol'],'fbs':d['res_fbs'],
               'restecg':d['res_ecg'],'thalach':d['res_hr'],'exang':d['res_exang'],
-              'oldpeak':d['res_st'],'slope':d['res_slope'],'ca':d['res_ca'],
-              'thal':d['res_thal']}
+              'oldpeak':d['res_st'],'slope':d['res_slope']}
         rfs = []
         if d2['age']      >55:  rfs.append(f"Age {d2['age']} yrs — elevated risk >55")
         if d2['chol']     >240: rfs.append(f"Cholesterol {d2['chol']} mg/dL — high")
@@ -643,8 +631,6 @@ with c5:
         if d2['fbs']      ==1:  rfs.append("Fasting blood sugar >120 mg/dL")
         if d2['exang']    ==1:  rfs.append("Exercise-induced angina present")
         if d2['oldpeak']  >2:   rfs.append(f"ST depression {d2['oldpeak']} — significant")
-        if d2['ca']       >0:   rfs.append(f"{d2['ca']} major vessel(s) blocked")
-        if d2['thal']     ==2:  rfs.append("Reversible thalassemia defect")
         if d2['cp']       ==0:  rfs.append("Typical angina — classic cardiac")
 
         if rfs:
