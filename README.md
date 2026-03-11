@@ -1,6 +1,6 @@
 **Heart Disease Risk Predictor**
 
-<img width="500" height="450" alt="image" src="https://github.com/user-attachments/assets/a726c542-6302-4750-8fee-c567be56129b" />
+<img width="500" height="450" alt="image" src="https://github.com/user-attachments/assets/e00d39fa-0a24-4d7f-aafc-a9539c8eb984" />
 
 
 A machine learning web application for predicting coronary heart disease (CHD) risk from clinical patient data. 
