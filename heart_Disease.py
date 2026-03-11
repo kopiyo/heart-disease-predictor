@@ -688,6 +688,6 @@ st.markdown("""
   ❤️ Heart Disease Risk Predictor &nbsp;·&nbsp;
   SVC &nbsp;·&nbsp; ROC-AUC 0.9412 &nbsp;·&nbsp;
   Recall: 91.18% &nbsp;·&nbsp; F1: 88.57% &nbsp;·&nbsp;
-  witzerland + Long Beach VA + Cleveland + Statlog + Hungarian (n=918) &nbsp;·&nbsp; 5-Fold CV
+  Switzerland + Long Beach VA + Cleveland + Statlog + Hungarian (n=918) &nbsp;·&nbsp; 5-Fold CV
 </div>
 """, unsafe_allow_html=True)
